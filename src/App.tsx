@@ -13,6 +13,7 @@ import ImportacaoProdutosPage from "./pages/ImportacaoProdutosPage";
 import OutrosServicosPage from "./pages/OutrosServicosPage";
 import MaisVendidosPage from "./pages/MaisVendidosPage";
 import AdminLogin from '@/pages/admin/login';
+import TesteLogin from '@/pages/admin/teste-login';
 import NotFound from "./pages/NotFound";
 import AdminRoutes from './routes/admin';
 import ProtectedRoute from './components/admin/ProtectedRoute';
@@ -20,48 +21,52 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import { Analytics } from '@/components/Analytics';
 import { HelmetProvider } from 'react-helmet-async';
 import SEO from '@/components/SEO';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const queryClient = new QueryClient();
 
 export default function App() {
   return (
-    <HelmetProvider>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <Router>
-            <SEO />
-            <AuthProvider>
-              <CartProvider>
-                <SearchProvider>
-                  <Analytics />
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/gift-card/:id" element={<GiftCardDetailPage />} />
-                    <Route path="/visa-virtual" element={<VisaVirtualPage />} />
-                    <Route path="/importacao" element={<ImportacaoProdutosPage />} />
-                    <Route path="/outros-servicos" element={<OutrosServicosPage />} />
-                    <Route path="/mais-vendidos" element={<MaisVendidosPage />} />
-                    <Route path="/admin/login" element={<AdminLogin />} />
-                    <Route
-                      path="/admin/*"
-                      element={
-                        <ProtectedRoute>
-                          <AdminLayout>
-                            <AdminRoutes />
-                          </AdminLayout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </SearchProvider>
-              </CartProvider>
-            </AuthProvider>
-          </Router>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </HelmetProvider>
+    <ErrorBoundary>
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <Router>
+              <SEO />
+              <AuthProvider>
+                <CartProvider>
+                  <SearchProvider>
+                    <Analytics />
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/gift-card/:id" element={<GiftCardDetailPage />} />
+                      <Route path="/visa-virtual" element={<VisaVirtualPage />} />
+                      <Route path="/importacao" element={<ImportacaoProdutosPage />} />
+                      <Route path="/outros-servicos" element={<OutrosServicosPage />} />
+                      <Route path="/mais-vendidos" element={<MaisVendidosPage />} />
+                      <Route path="/admin/login" element={<AdminLogin />} />
+                      <Route path="/admin/teste-login" element={<TesteLogin />} />
+                      <Route
+                        path="/admin/*"
+                        element={
+                          <ProtectedRoute>
+                            <AdminLayout>
+                              <AdminRoutes />
+                            </AdminLayout>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </SearchProvider>
+                </CartProvider>
+              </AuthProvider>
+            </Router>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </HelmetProvider>
+    </ErrorBoundary>
   );
 }
