@@ -1,7 +1,13 @@
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Menu, CreditCard, ShoppingBag, Package, MoreHorizontal, Plus } from "lucide-react";
+import { Menu, CreditCard, ShoppingBag, Package, MoreHorizontal, Plus, Home, Settings, User } from "lucide-react";
+
+// Constantes para armazenamento no localStorage
+const STORAGE_KEYS = {
+  BUTTON_POSITION: 'dot-mobile-button-position',
+  SCROLL_POSITIONS: 'dot-scroll-positions'
+};
 
 const navItems = [
   { id: 1, name: "Gift Card", path: "/" },
@@ -19,6 +25,50 @@ const Navigation = ({ onPageChange }: NavigationProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Restaurar a posição de scroll quando a página muda
+  useEffect(() => {
+    // Salvar posição de scroll atual antes de mudar de página
+    const saveScrollPosition = () => {
+      try {
+        const scrollPositions = JSON.parse(localStorage.getItem(STORAGE_KEYS.SCROLL_POSITIONS) || '{}');
+        scrollPositions[location.pathname] = window.scrollY;
+        localStorage.setItem(STORAGE_KEYS.SCROLL_POSITIONS, JSON.stringify(scrollPositions));
+      } catch (error) {
+        console.error('Erro ao salvar posição de scroll:', error);
+      }
+    };
+
+    // Restaurar posição de scroll quando a página carrega
+    const restoreScrollPosition = () => {
+      try {
+        const scrollPositions = JSON.parse(localStorage.getItem(STORAGE_KEYS.SCROLL_POSITIONS) || '{}');
+        const savedPosition = scrollPositions[location.pathname];
+        
+        if (savedPosition !== undefined) {
+          // Usar setTimeout para garantir que a página tenha carregado
+          setTimeout(() => {
+            window.scrollTo(0, savedPosition);
+          }, 100);
+        }
+      } catch (error) {
+        console.error('Erro ao restaurar posição de scroll:', error);
+      }
+    };
+
+    // Adicionar listener para salvar a posição antes de sair da página
+    window.addEventListener('beforeunload', saveScrollPosition);
+    
+    // Salvar a posição quando a localização muda
+    saveScrollPosition();
+    
+    // Restaurar a posição para a nova página
+    restoreScrollPosition();
+
+    return () => {
+      window.removeEventListener('beforeunload', saveScrollPosition);
+    };
+  }, [location.pathname]);
 
   // Atualizar o item selecionado com base na URL atual
   useEffect(() => {
@@ -44,8 +94,8 @@ const Navigation = ({ onPageChange }: NavigationProps) => {
 
   return (
     <nav className="px-2 md:px-6 border-b bg-dot-white relative">
-      {/* Floating Action Menu Mobile - Opção 2 */}
-      <div className="md:hidden">
+      {/* Floating Menu para Mobile - sempre visível */}
+      <div className="block md:hidden">
         <FloatingMenuMobile selectedId={selectedId} handleClick={handleClick} />
       </div>
 
@@ -74,22 +124,223 @@ const Navigation = ({ onPageChange }: NavigationProps) => {
   );
 };
 
-// Floating Action Menu para mobile
+// Floating Action Menu para mobile com opção de arrastar
 function FloatingMenuMobile({ selectedId, handleClick }: { selectedId: number, handleClick: (id: number, path: string) => void }) {
   const [open, setOpen] = useState(false);
-  const navItems = [
+  const draggableRef = useRef<HTMLDivElement>(null);
+  const location = useLocation();
+  
+  // Usar os mesmos itens do menu principal para consistência
+  const mobileNavItems = [
     { id: 1, name: "Gift Card", icon: ShoppingBag, path: "/" },
     { id: 2, name: "Visa Virtual", icon: CreditCard, path: "/visa-virtual" },
     { id: 3, name: "Importação", icon: Package, path: "/importacao" },
-    { id: 4, name: "Outros", icon: MoreHorizontal, path: "/outros-servicos" },
+    { id: 4, name: "Outros serviços", icon: MoreHorizontal, path: "/outros-servicos" },
   ];
+
+  useEffect(() => {
+    // Criar botão flutuante
+    const mobileButton = document.createElement('div');
+    mobileButton.id = 'mobile-menu-floating-btn';
+    mobileButton.style.position = 'fixed';
+    
+    // Tentar recuperar a posição salva do botão
+    let savedPosition = null;
+    try {
+      savedPosition = JSON.parse(localStorage.getItem(STORAGE_KEYS.BUTTON_POSITION) || 'null');
+    } catch (error) {
+      console.error('Erro ao recuperar posição do botão:', error);
+    }
+    
+    // Aplicar posição salva ou usar padrão
+    if (savedPosition && typeof savedPosition === 'object' && 'left' in savedPosition) {
+      mobileButton.style.left = savedPosition.left + 'px';
+      mobileButton.style.top = savedPosition.top + 'px';
+      mobileButton.style.bottom = 'auto';
+      mobileButton.style.right = 'auto';
+    } else {
+      mobileButton.style.bottom = '20px';
+      mobileButton.style.right = '20px';
+    }
+    
+    mobileButton.style.width = '60px';
+    mobileButton.style.height = '60px';
+    mobileButton.style.borderRadius = '50%';
+    mobileButton.style.backgroundColor = '#01042D'; // Cor azul principal do site (dot-brand-blue)
+    mobileButton.style.color = 'white';
+    mobileButton.style.display = 'flex';
+    mobileButton.style.alignItems = 'center';
+    mobileButton.style.justifyContent = 'center';
+    mobileButton.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+    mobileButton.style.border = '2px solid white';
+    mobileButton.style.zIndex = '9999';
+    mobileButton.style.cursor = 'grab';
+    mobileButton.style.touchAction = 'none'; // Prevenir comportamentos padrão de touch
+    mobileButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>`;
+    
+    document.body.appendChild(mobileButton);
+    
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let offsetX = 0;
+    let offsetY = 0;
+    let startTime = 0;
+    
+    // Eventos para arrastar o botão
+    mobileButton.addEventListener('mousedown', startDrag);
+    mobileButton.addEventListener('touchstart', startDrag, { passive: false });
+    
+    // Funções para manipular eventos durante arrasto
+    function handleMove(e: MouseEvent | TouchEvent) {
+      if (startX === 0 && startY === 0) return;
+      
+      e.preventDefault(); // Impedir scroll durante o arrasto
+      e.stopPropagation();
+      
+      let currentX, currentY;
+      
+      if (e instanceof TouchEvent) {
+        currentX = e.touches[0].clientX;
+        currentY = e.touches[0].clientY;
+      } else {
+        currentX = e.clientX;
+        currentY = e.clientY;
+      }
+      
+      // Se mover o suficiente, considerar como arrasto
+      if (Math.abs(currentX - startX) > 5 || Math.abs(currentY - startY) > 5) {
+        isDragging = true;
+      }
+      
+      if (isDragging) {
+        const newLeft = offsetX + (currentX - startX);
+        const newTop = offsetY + (currentY - startY);
+        
+        // Limitar às bordas da tela
+        const maxX = window.innerWidth - mobileButton.offsetWidth;
+        const maxY = window.innerHeight - mobileButton.offsetHeight;
+        
+        const finalLeft = Math.max(0, Math.min(newLeft, maxX));
+        const finalTop = Math.max(0, Math.min(newTop, maxY));
+        
+        mobileButton.style.left = `${finalLeft}px`;
+        mobileButton.style.top = `${finalTop}px`;
+        mobileButton.style.bottom = 'auto';
+        mobileButton.style.right = 'auto';
+        
+        // Salvar a posição atual no localStorage
+        try {
+          localStorage.setItem(STORAGE_KEYS.BUTTON_POSITION, JSON.stringify({
+            left: finalLeft,
+            top: finalTop
+          }));
+        } catch (error) {
+          console.error('Erro ao salvar posição do botão:', error);
+        }
+      }
+    }
+    
+    function handleEnd(e: MouseEvent | TouchEvent) {
+      // Remover os listeners de movimento e fim
+      document.removeEventListener('mousemove', handleMove);
+      document.removeEventListener('touchmove', handleMove);
+      document.removeEventListener('mouseup', handleEnd);
+      document.removeEventListener('touchend', handleEnd);
+      
+      // Se o tempo total foi curto e não houve movimento significativo, considerar como clique
+      const timeElapsed = Date.now() - startTime;
+      
+      if (timeElapsed < 200 && !isDragging) {
+        // É um clique rápido
+        setOpen(prev => !prev);
+      }
+      
+      startX = 0;
+      startY = 0;
+      isDragging = false;
+      mobileButton.style.cursor = 'grab';
+    }
+    
+    function startDrag(e: MouseEvent | TouchEvent) {
+      // Inicialmente não está arrastando, apenas clicou
+      isDragging = false;
+      startTime = Date.now();
+      
+      // Prevenir todos os comportamentos padrão (scrolling, etc)
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (e instanceof TouchEvent) {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+      } else {
+        startX = e.clientX;
+        startY = e.clientY;
+      }
+      
+      offsetX = mobileButton.offsetLeft;
+      offsetY = mobileButton.offsetTop;
+      mobileButton.style.cursor = 'grabbing';
+      
+      // Adicionar os listeners de movimento e fim
+      document.addEventListener('mousemove', handleMove, { passive: false });
+      document.addEventListener('touchmove', handleMove, { passive: false });
+      document.addEventListener('mouseup', handleEnd);
+      document.addEventListener('touchend', handleEnd);
+    }
+    
+    // Limpar ao desmontar
+    return () => {
+      document.body.removeChild(mobileButton);
+      document.removeEventListener('mousemove', handleMove);
+      document.removeEventListener('touchmove', handleMove);
+      document.removeEventListener('mouseup', handleEnd);
+      document.removeEventListener('touchend', handleEnd);
+    };
+  }, []);
+  
+  // Fechar o menu quando a localização muda
+  useEffect(() => {
+    setOpen(false);
+  }, [location.pathname]);
+  
+  // Renderizar menu quando aberto
+  useEffect(() => {
+    const btn = document.getElementById('mobile-menu-floating-btn');
+    if (btn) {
+      if (open) {
+        btn.style.backgroundColor = '#0A1F7E'; // Cor ligeiramente diferente quando aberto
+      } else {
+        btn.style.backgroundColor = '#01042D'; // Cor azul principal do site (dot-brand-blue)
+      }
+    }
+  }, [open]);
+
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
-      {/* Itens do menu, aparecem quando open=true */}
+    <>
       {open && (
-        <div className="flex flex-col gap-3 mb-2 animate-fade-in-up">
-          {navItems.map((item) => {
+        <div 
+          className="fixed inset-0 bg-black/10 backdrop-blur-sm z-[999]"
+          onClick={() => setOpen(false)}
+        />
+      )}
+    
+      {open && (
+        <div 
+          className="fixed z-[9999]"
+          style={{
+            bottom: `${80}px`,
+            right: `${20}px`,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px'
+          }}
+        >
+          {mobileNavItems.map((item, index) => {
             const Icon = item.icon;
+            const isActive = selectedId === item.id;
+            
             return (
               <button
                 key={item.id}
@@ -97,32 +348,44 @@ function FloatingMenuMobile({ selectedId, handleClick }: { selectedId: number, h
                   setOpen(false);
                   handleClick(item.id, item.path);
                 }}
-                className={
-                  `flex items-center gap-2 px-4 py-2 rounded-full shadow-lg bg-white border border-gray-200
-                  transition-all duration-300 hover:bg-blue-50
-                  ${selectedId === item.id ? 'text-dot-brand-blue font-semibold' : 'text-dot-gray-text'}`
-                }
-                style={{ minWidth: 140 }}
+                style={{
+                  backgroundColor: isActive ? '#eef2ff' : 'white',
+                  color: isActive ? '#01042D' : '#4b5563', // Cor azul principal nos itens ativos
+                  border: `1px solid ${isActive ? '#c7d2fe' : '#e5e7eb'}`,
+                  borderRadius: '12px',
+                  padding: '12px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                  minWidth: '160px',
+                  fontWeight: isActive ? '600' : '400',
+                  fontSize: '14px',
+                  transition: 'all 0.2s ease',
+                  animationDelay: `${index * 50}ms`,
+                  animation: 'floatIn 0.3s ease forwards'
+                }}
               >
-                <Icon className="w-5 h-5" />
-                <span className="text-sm">{item.name}</span>
+                <Icon
+                  size={18}
+                  color={isActive ? '#01042D' : '#6b7280'} // Cor azul principal nos ícones ativos
+                />
+                {item.name}
               </button>
             );
           })}
         </div>
       )}
-      {/* Botão flutuante principal */}
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className={
-          `w-14 h-14 rounded-full bg-dot-brand-blue text-white shadow-xl flex items-center justify-center
-          transition-transform duration-300 active:scale-90`
-        }
-        aria-label="Abrir menu"
-      >
-        <Plus className={`w-7 h-7 transition-transform duration-300 ${open ? 'rotate-45' : ''}`} />
-      </button>
-    </div>
+      
+      <style>
+        {`
+          @keyframes floatIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+        `}
+      </style>
+    </>
   );
 }
 
