@@ -67,7 +67,34 @@ const HomeLayout = () => {
   };
 
   const handleCategorySelect = (categoryId: string | null) => {
+    console.log(`HomeLayout: Selecionando categoria: ${categoryId || 'todas'}`);
+    
+    // Atualizar o estado global de categoria selecionada
     setSelectedCategory(categoryId);
+    
+    // Encontrar nome da categoria para debugging
+    if (categoryId) {
+      const categoryElement = document.querySelector(`.category-button[data-category-id="${categoryId}"]`);
+      const categoryName = categoryElement?.getAttribute('data-category-name');
+      console.log(`Nome da categoria selecionada: ${categoryName || 'Desconhecido'}`);
+      
+      // Adicionar um evento customizado para notificar componentes sobre mudança de categoria
+      const event = new CustomEvent('categoryChanged', { 
+        detail: { 
+          categoryId: categoryId,
+          categoryName: categoryName || 'Categoria'
+        } 
+      });
+      window.dispatchEvent(event);
+    }
+    
+    // Rolar até a seção de gift cards
+    const giftCardsContainer = document.querySelector('.w-full.md\\:w-3\\/4');
+    if (giftCardsContainer) {
+      const yOffset = -20;
+      const y = giftCardsContainer.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
   };
 
   const getMaxVisibleItems = () => {

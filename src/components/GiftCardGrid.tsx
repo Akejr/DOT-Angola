@@ -26,17 +26,122 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
   const [internalSelectedCategory, setInternalSelectedCategory] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState<'newest' | 'price-asc' | 'price-desc'>('newest');
-  const [showFilters, setShowFilters] = useState(false);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [categoryMappings, setCategoryMappings] = useState<Map<string, number>>(new Map());
-  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
   const cardsContainerRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const [selectedCategoryName, setSelectedCategoryName] = useState<string | null>(null);
 
   // Use the external selectedCategory from props if provided, otherwise use internal state
   const selectedCategory = externalSelectedCategory !== undefined ? externalSelectedCategory : internalSelectedCategory;
+
+  // Efeito para buscar o nome da categoria selecionada
+  useEffect(() => {
+    // Apenas se tiver uma categoria selecionada
+    if (selectedCategory) {
+      const fetchCategoryName = async () => {
+        // Se já temos categorias carregadas, procurar nelas
+        if (categories.length > 0) {
+          const category = categories.find(c => c.id === selectedCategory);
+          if (category) {
+            console.log(`Nome da categoria encontrado em cache: ${category.name}`);
+            setSelectedCategoryName(category.name);
+            return;
+          }
+        }
+        
+        // Se não encontrou nas categorias carregadas, buscar do servidor
+        try {
+          console.log("Buscando categorias do servidor para nome da categoria selecionada");
+          setCategoriesLoading(true);
+          const cats = await getCategories();
+          setCategories(cats);
+          
+          const category = cats.find(c => c.id === selectedCategory);
+          if (category) {
+            console.log(`Nome da categoria encontrado no servidor: ${category.name}`);
+            setSelectedCategoryName(category.name);
+          } else {
+            console.log(`Categoria com ID ${selectedCategory} não encontrada`);
+            setSelectedCategoryName("Categoria");
+          }
+        } catch (error) {
+          console.error("Erro ao buscar nome da categoria:", error);
+          setSelectedCategoryName("Categoria");
+        } finally {
+          setCategoriesLoading(false);
+        }
+      };
+      
+      fetchCategoryName();
+    } else {
+      setSelectedCategoryName(null);
+    }
+  }, [selectedCategory, categories]);
+
+  // Adicionar um event listener para o evento personalizado categoryChanged
+  useEffect(() => {
+    const handleCategoryChange = (event: any) => {
+      const { categoryId, categoryName } = event.detail;
+      console.log(`GiftCardGrid: Recebeu evento de categoria alterada: ${categoryName} (${categoryId})`);
+      
+      // Atualizar o nome da categoria diretamente
+      if (categoryName) {
+        setSelectedCategoryName(categoryName);
+      } else {
+        setSelectedCategoryName(null);
+      }
+      
+      // Forçar atualização da UI
+      if (showCategoryDropdown) {
+        setShowCategoryDropdown(false);
+      }
+    };
+    
+    // Registrar o listener
+    window.addEventListener('categoryChanged', handleCategoryChange);
+    
+    // Limpar ao desmontar
+    return () => {
+      window.removeEventListener('categoryChanged', handleCategoryChange);
+    };
+  }, [showCategoryDropdown]);
+
+  // Sincronizar com props externas quando elas mudarem
+  useEffect(() => {
+    if (externalSelectedCategory !== undefined) {
+      console.log(`Recebendo categoria externa: ${externalSelectedCategory || 'todas'}`);
+      setInternalSelectedCategory(externalSelectedCategory);
+      
+      // Carregar categorias se estiverem vazias ou se houver uma categoria selecionada
+      if (categories.length === 0 || externalSelectedCategory) {
+        const loadCats = async () => {
+          console.log("Carregando categorias para mostrar o nome da categoria selecionada");
+          try {
+            const cats = await getCategories();
+            console.log(`Carregadas ${cats.length} categorias ao receber categoria externa`);
+            setCategories(cats);
+            const categoryName = cats.find(c => c.id === externalSelectedCategory)?.name;
+            console.log(`Nome da categoria externa: ${categoryName || 'não encontrado'}`);
+          } catch (error) {
+            console.error("Erro ao carregar categorias:", error);
+          }
+        };
+        loadCats();
+      }
+    }
+  }, [externalSelectedCategory]);
+
+  // Monitorar quando as categorias são carregadas e há uma categoria selecionada
+  useEffect(() => {
+    if (categories.length > 0 && selectedCategory) {
+      const categoryName = categories.find(c => c.id === selectedCategory)?.name;
+      console.log(`Categoria selecionada atualizada: ${categoryName || 'não encontrado'} (ID: ${selectedCategory})`);
+    }
+  }, [categories, selectedCategory]);
 
   // Carregar dados iniciais
   useEffect(() => {
@@ -63,19 +168,32 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
       
       console.log(`Filtrando ${cards.length} gift cards pela categoria ${selectedCategory}`);
       
-      return cards.filter(card => {
+      // Encontrar e exibir o nome da categoria para debug
+      const categoryName = categories.find(c => c.id === selectedCategory)?.name;
+      console.log(`Nome da categoria selecionada: ${categoryName || 'desconhecido'}`);
+      
+      const filtered = cards.filter(card => {
         // Verificar se o card tem categorias definidas
         if (!card.gift_card_categories || !Array.isArray(card.gift_card_categories)) {
           return false;
         }
         
         // Verificar se o card pertence à categoria selecionada
-        const matchesCategory = card.gift_card_categories.some(relation => 
-          relation.categories && relation.categories.id === selectedCategory
-        );
+        const matchesCategory = card.gift_card_categories.some(relation => {
+          if (!relation.categories) return false;
+          const categoryId = relation.categories.id;
+          const matches = categoryId === selectedCategory;
+          if (matches) {
+            console.log(`Card ${card.name} pertence à categoria ${selectedCategory}`);
+          }
+          return matches;
+        });
         
         return matchesCategory;
       });
+      
+      console.log(`Encontrados ${filtered.length} cards para a categoria ${selectedCategory}`);
+      return filtered;
     };
     
     // Função para ordenar os cards
@@ -102,7 +220,7 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
     
     setFilteredCards(sorted);
     setVisibleCardCount(12); // Resetar para mostrar apenas os primeiros 12 cards
-  }, [selectedCategory, allGiftCards, sortBy]);
+  }, [selectedCategory, allGiftCards, sortBy, categories]);
 
   // Atualizar cards exibidos
   useEffect(() => {
@@ -168,42 +286,33 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
 
       // Carregar gift cards
       try {
-        const fetchCardsPromise = getGiftCards();
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Timeout')), 8000)
-        );
+        // Carregar categorias e taxas de câmbio em paralelo com os gift cards
+        const [cards, cats, rates] = await Promise.all([
+          getGiftCards(),
+          getCategories(),
+          getExchangeRates()
+        ]);
         
-        const cards = await Promise.race([fetchCardsPromise, timeoutPromise]) as GiftCard[];
         console.log(`Carregados ${cards.length} gift cards`);
+        console.log(`Carregadas ${cats.length} categorias`);
         
         setAllGiftCards(cards);
         setFilteredCards(cards);
         setDisplayedCards(cards.slice(0, visibleCardCount));
         setInitialDataLoaded(true);
-      } catch (error) {
-        console.error("Erro ao carregar gift cards:", error);
-        setInitialDataLoaded(true);
-        setHasError(true);
-      }
-      
-      // Carregar categorias e taxas de câmbio em paralelo
-      try {
-        const [cats, rates] = await Promise.all([
-          getCategories(),
-          getExchangeRates()
-        ]);
         
-        console.log(`Carregadas ${cats.length} categorias`);
         setCategories(cats);
         setExchangeRates(rates);
         
         // Calcular contagem de gift cards por categoria
         if (cats.length > 0) {
-          const categoryCountMap = computeCategoryMappings(allGiftCards, cats);
+          const categoryCountMap = computeCategoryMappings(cards, cats);
           setCategoryMappings(categoryCountMap);
         }
       } catch (error) {
-        console.error("Erro ao carregar dados secundários:", error);
+        console.error("Erro ao carregar gift cards:", error);
+        setInitialDataLoaded(true);
+        setHasError(true);
       } finally {
         setCategoriesLoading(false);
       }
@@ -257,14 +366,61 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
     });
   }, [displayedCards.length, filteredCards.length, loadingMore]);
 
-  // Manipulador de seleção de categoria
+  // Manipulador de seleção de categoria para o botão mobile
   const handleCategorySelect = useCallback((categoryId: string | null) => {
-    console.log(`Selecionando categoria: ${categoryId || 'todas'}`);
+    console.log(`GiftCardGrid: Selecionando categoria: ${categoryId || 'todas'}`);
+    
+    // Atualizar o estado interno
     setInternalSelectedCategory(categoryId);
+    
+    // Fechar o dropdown
     setShowCategoryDropdown(false);
-  }, []);
+    
+    // Se tivermos o nome da categoria disponível, atualize-o diretamente
+    if (categoryId && categories.length > 0) {
+      const category = categories.find(c => c.id === categoryId);
+      if (category) {
+        setSelectedCategoryName(category.name);
+        
+        // Disparar evento para notificar outros componentes
+        const event = new CustomEvent('categoryChanged', { 
+          detail: { 
+            categoryId: categoryId,
+            categoryName: category.name 
+          } 
+        });
+        window.dispatchEvent(event);
+      }
+    } else if (!categoryId) {
+      setSelectedCategoryName(null);
+      
+      // Disparar evento para notificar outros componentes sobre reset
+      const event = new CustomEvent('categoryChanged', { 
+        detail: { 
+          categoryId: null,
+          categoryName: null 
+        } 
+      });
+      window.dispatchEvent(event);
+    }
+    
+    // Forçar a atualização dos cards filtrados
+    if (allGiftCards.length > 0) {
+      const filtered = allGiftCards.filter(card => {
+        if (!categoryId) return true; // Sem filtro de categoria
+        if (!card.gift_card_categories || !Array.isArray(card.gift_card_categories)) return false;
+        return card.gift_card_categories.some(relation => 
+          relation.categories && relation.categories.id === categoryId
+        );
+      });
+      
+      setFilteredCards(filtered);
+      setVisibleCardCount(12);  // Resetar para mostrar apenas os primeiros 12 cards
+      console.log(`Filtrados ${filtered.length} gift cards de ${allGiftCards.length} para a categoria ${categoryId}`);
+    }
+  }, [allGiftCards, categories]);
 
-  // Limpar todos os filtros
+  // Limpar todos os filtros (função mantida para compatibilidade com o FilterSection)
   const clearFilters = useCallback(() => {
     console.log("Limpando todos os filtros");
     setInternalSelectedCategory(null);
@@ -331,36 +487,57 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
             
             {/* Controles de visualização e filtros */}
             <div className="mt-4 md:mt-0 flex flex-wrap items-center gap-2 md:gap-3">
-              {/* Botão de seleção de categoria */}
-              <div className="relative">
+              {/* Botão de seleção de categoria - visível apenas no mobile */}
+              <div className="relative block md:hidden">
                 <button 
-                  onClick={() => setShowCategoryDropdown((prev) => !prev)}
+                  onClick={() => {
+                    // Se não houver categorias carregadas ainda, carregue-as
+                    if (categories.length === 0) {
+                      setCategoriesLoading(true);
+                      getCategories().then(cats => {
+                        setCategories(cats);
+                        setCategoriesLoading(false);
+                      }).catch(err => {
+                        console.error("Erro ao carregar categorias:", err);
+                        setCategoriesLoading(false);
+                      });
+                    }
+                    setShowCategoryDropdown((prev) => !prev);
+                  }}
                   className={`flex items-center justify-center gap-1 px-3 py-2 bg-white border ${selectedCategory ? 'border-blue-300' : 'border-gray-200'} rounded-lg text-sm font-medium ${selectedCategory ? 'text-blue-600' : 'text-gray-700'} hover:bg-gray-50 shadow-sm`}
                   aria-label="Selecionar categoria"
+                  aria-expanded={showCategoryDropdown}
+                  aria-controls="category-dropdown"
                 >
                   <CheckIcon className={`h-4 w-4 ${selectedCategory ? 'text-blue-500' : 'text-gray-500'}`} />
-                  <span>
-                    {selectedCategory 
-                      ? categories.find(c => c.id === selectedCategory)?.name || 'Categoria'
+                  <span data-testid="mobile-category-button-text">
+                    {selectedCategory
+                      ? (selectedCategoryName || (categoriesLoading ? 'Carregando...' : 'Categoria'))
                       : 'Selecionar categoria'
                     }
                   </span>
-                  <ChevronDown className="h-4 w-4" />
+                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${showCategoryDropdown ? 'transform rotate-180' : ''}`} />
                 </button>
                 
                 {/* Dropdown de categorias */}
                 {showCategoryDropdown && (
                   <div 
+                    id="category-dropdown"
                     ref={categoryDropdownRef}
-                    className="absolute right-0 sm:right-auto left-0 sm:left-auto z-50 mt-1 w-full sm:w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                    className="absolute right-0 sm:right-auto left-0 sm:left-auto z-50 mt-1 w-full sm:w-64 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                    style={{ maxHeight: '350px', overflowY: 'auto' }}
                   >
-                    <div className="py-1 max-h-[60vh] overflow-y-auto">
+                    <div className="py-1 max-h-60vh overflow-y-auto">
                       <button
+                        type="button"
                         onClick={() => handleCategorySelect(null)}
-                        className={`w-full text-left px-4 py-2.5 sm:py-2 text-sm ${!selectedCategory ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'}`}
+                        className={`w-full text-left px-4 py-2.5 sm:py-2 text-sm flex items-center ${!selectedCategory ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700 hover:bg-gray-50'}`}
+                        data-testid="category-option-all"
                       >
-                        Todas as categorias
+                        {!selectedCategory && <CheckIcon className="h-4 w-4 mr-2 text-blue-500" />}
+                        <span className={!selectedCategory ? 'ml-2' : 'ml-6'}>Todas as categorias</span>
                       </button>
+                      
                       {categories && categories.length > 0 ? (
                         categories.map(category => {
                           const count = categoryMappings.get(category.id) || 0;
@@ -368,20 +545,29 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
                           return count > 0 ? (
                             <button 
                               key={category.id}
+                              type="button"
                               onClick={() => handleCategorySelect(category.id)}
-                              className={`w-full text-left px-4 py-2.5 sm:py-2 text-sm ${selectedCategory === category.id ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'}`}
+                              className={`w-full text-left px-4 py-2.5 sm:py-2 text-sm flex items-center ${selectedCategory === category.id ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700 hover:bg-gray-50'}`}
+                              data-category-id={category.id}
+                              data-category-name={category.name}
+                              data-testid={`category-option-${category.id}`}
                             >
-                              {category.name} <span className="text-xs ml-1 opacity-75">({count})</span>
+                              {selectedCategory === category.id && <CheckIcon className="h-4 w-4 mr-2 text-blue-500" />}
+                              <span className={selectedCategory === category.id ? 'ml-2' : 'ml-6'}>
+                                {category.name} <span className="text-xs ml-1 opacity-75">({count})</span>
+                              </span>
                             </button>
                           ) : null;
                         })
-                      ) : null}
+                      ) : (
+                        <div className="px-4 py-2 text-sm text-gray-500">Nenhuma categoria disponível</div>
+                      )}
                     </div>
                   </div>
                 )}
               </div>
               
-              {/* Botões de visualização e filtros */}
+              {/* Botões de visualização */}
               <div className="flex items-center bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm flex-grow md:flex-grow-0">
                 <button 
                   onClick={() => setViewMode('grid')}
@@ -400,183 +586,62 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
                   <ListFilter className="h-4 w-4 mr-0 md:mr-1.5" />
                   <span className="text-sm font-medium hidden md:inline">Lista</span>
                 </button>
-                <div className="h-6 border-r border-gray-200"></div>
-                <button 
-                  onClick={() => setShowFilters((prev) => !prev)}
-                  className={`p-2 flex-1 md:flex-initial flex items-center justify-center md:justify-start ${showFilters ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-50'} relative`}
-                  aria-label="Filtros"
-                >
-                  <Sliders className={`h-5 w-5 md:h-4 md:w-4 mr-0 md:mr-1.5 ${showFilters ? 'text-blue-600' : ''}`} />
-                  <span className="text-sm font-medium hidden md:inline">Filtros</span>
-                  {(selectedCategory !== null || sortBy !== 'newest') && (
-                    <span className="ml-1 flex h-5 w-5 md:h-4 md:w-4 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">
-                      {selectedCategory !== null && sortBy !== 'newest' ? 2 : 1}
-                    </span>
-                  )}
-                </button>
               </div>
             </div>
           </div>
           
-          {/* Filtros expandidos */}
-          <div 
-            className={`transition-all duration-300 ease-in-out overflow-hidden ${
-              showFilters 
-                ? 'max-h-[2000px] opacity-100 mb-5 mt-3 visible'
-                : 'max-h-0 opacity-0 invisible'
-            }`}
-          >
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-semibold text-gray-800">Filtros</h3>
-                {(selectedCategory !== null || sortBy !== 'newest') && (
-                  <button 
-                    onClick={clearFilters}
-                    className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
-                  >
-                    <span>Limpar todos</span>
-                  </button>
-                )}
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
-                {/* Categorias */}
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <label className="block text-sm font-medium text-gray-700">Categorias</label>
-                    {selectedCategory && (
-                      <button 
-                        onClick={() => handleCategorySelect(null)}
-                        className="text-xs text-blue-600 hover:text-blue-800"
-                      >
-                        Limpar
-                      </button>
-                    )}
-                  </div>
-                  {categoriesLoading ? (
-                    <div className="flex gap-2">
-                      <div className="h-8 w-16 bg-gray-100 animate-pulse rounded-full"></div>
-                      <div className="h-8 w-24 bg-gray-100 animate-pulse rounded-full"></div>
-                      <div className="h-8 w-20 bg-gray-100 animate-pulse rounded-full"></div>
+          {/* Lista de Gift Cards */}
+          {filteredCards.length === 0 ? (
+            <div className="text-center py-16 bg-gray-50 rounded-lg">
+              <p className="text-gray-500 mb-2">Nenhum gift card encontrado</p>
+              <button 
+                onClick={clearFilters}
+                className="text-blue-600 hover:underline text-sm"
+              >
+                Limpar filtros
+              </button>
+            </div>
+          ) : (
+            <div 
+              ref={cardsContainerRef}
+              className={
+                viewMode === 'grid' 
+                  ? "gift-card-container relative"
+                  : "flex flex-col space-y-6 relative"
+              }
+            >
+              {renderGiftCards()}
+              
+              {/* Elemento sentinela para detecção de scroll - otimizado */}
+              {displayedCards.length < filteredCards.length && (
+                <div 
+                  id="cards-sentinel" 
+                  ref={sentinelRef}
+                  className="h-20 w-full flex items-center justify-center my-4"
+                >
+                  {loadingMore ? (
+                    <div className="flex flex-col items-center space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                        <div className="w-4 h-4 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                        <div className="w-4 h-4 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                      </div>
+                      <span className="text-sm text-gray-500">Carregando mais items...</span>
                     </div>
                   ) : (
-                    <div className="flex flex-wrap gap-2">
-                      <button 
-                        onClick={() => handleCategorySelect(null)}
-                        className={`px-3 py-2.5 sm:px-4 sm:py-2 text-sm rounded-lg transition-all duration-200 flex items-center justify-center ${!selectedCategory ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-                      >
-                        Todas
-                      </button>
-                      {categories && categories.length > 0 ? (
-                        categories.map(category => {
-                          // Usar o mapeamento pré-calculado para a contagem de gift cards por categoria
-                          const count = categoryMappings.get(category.id) || 0;
-                          // Mostrar apenas categorias que têm pelo menos um gift card
-                          return count > 0 ? (
-                            <button 
-                              key={category.id}
-                              onClick={() => handleCategorySelect(category.id)}
-                              className={`px-3 py-2.5 sm:px-4 sm:py-2 text-sm rounded-lg transition-all duration-200 flex items-center justify-center ${selectedCategory === category.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-                            >
-                              {category.name} <span className="text-xs ml-1 opacity-75">({count})</span>
-                            </button>
-                          ) : null;
-                        })
-                      ) : (
-                        <span className="text-sm text-gray-500">Sem categorias disponíveis</span>
-                      )}
-                    </div>
+                    <button 
+                      onClick={loadMoreCards}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm transition-colors flex items-center gap-2"
+                    >
+                      <span>Carregar mais</span>
+                      <ChevronDown className="h-4 w-4" />
+                    </button>
                   )}
                 </div>
-                {/* Ordenação */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-medium text-gray-700">Ordenar por</label>
-                    {sortBy !== 'newest' && (
-                      <button 
-                        onClick={() => setSortBy('newest')}
-                        className="text-xs text-blue-600 hover:text-blue-800"
-                      >
-                        Padrão
-                      </button>
-                    )}
-                  </div>
-                  <div className="flex flex-col sm:flex-row flex-wrap gap-2">
-                    <button 
-                      onClick={() => setSortBy('newest')}
-                      className={`px-3 py-2.5 sm:px-4 sm:py-2 text-sm rounded-lg transition-all duration-200 flex items-center justify-center ${sortBy === 'newest' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-                    >
-                      Mais recentes
-                    </button>
-                    <button 
-                      onClick={() => setSortBy('price-asc')}
-                      className={`px-3 py-2.5 sm:px-4 sm:py-2 text-sm rounded-lg transition-all duration-200 flex items-center justify-center ${sortBy === 'price-asc' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-                    >
-                      Menor preço
-                    </button>
-                    <button 
-                      onClick={() => setSortBy('price-desc')}
-                      className={`px-3 py-2.5 sm:px-4 sm:py-2 text-sm rounded-lg transition-all duration-200 flex items-center justify-center ${sortBy === 'price-desc' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-                    >
-                      Maior preço
-                    </button>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
-          </div>
+          )}
         </div>
-          
-        {/* Lista de Gift Cards */}
-        {filteredCards.length === 0 ? (
-          <div className="text-center py-16 bg-gray-50 rounded-lg">
-            <p className="text-gray-500 mb-2">Nenhum gift card encontrado</p>
-            <button 
-              onClick={clearFilters}
-              className="text-blue-600 hover:underline text-sm"
-            >
-              Limpar filtros
-            </button>
-          </div>
-        ) : (
-          <div 
-            ref={cardsContainerRef}
-            className={
-              viewMode === 'grid' 
-                ? "gift-card-container relative"
-                : "flex flex-col space-y-6 relative"
-            }
-          >
-            {renderGiftCards()}
-            
-            {/* Elemento sentinela para detecção de scroll - otimizado */}
-            {displayedCards.length < filteredCards.length && (
-              <div 
-                id="cards-sentinel" 
-                ref={sentinelRef}
-                className="h-20 w-full flex items-center justify-center my-4"
-              >
-                {loadingMore ? (
-                  <div className="flex flex-col items-center space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-4 h-4 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                      <div className="w-4 h-4 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                      <div className="w-4 h-4 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                    </div>
-                    <span className="text-sm text-gray-500">Carregando mais items...</span>
-                  </div>
-                ) : (
-                  <button 
-                    onClick={loadMoreCards}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm transition-colors flex items-center gap-2"
-                  >
-                    <span>Carregar mais</span>
-                    <ChevronDown className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-        )}
       </LoadingOptimizer>
     </div>
   );

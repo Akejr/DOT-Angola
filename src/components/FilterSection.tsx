@@ -34,16 +34,72 @@ const FilterSection = ({ onCategorySelect, selectedCategory }: FilterSectionProp
     loadCategories();
   }, []);
 
+  // Adicionar ouvinte para o evento de mudança de categoria
+  useEffect(() => {
+    const handleCategoryChange = (event: any) => {
+      const { categoryId, categoryName } = event.detail;
+      console.log(`FilterSection: Recebeu evento de categoria alterada: ${categoryId || 'todas'} (${categoryName || ''})`);
+      
+      // Apenas atualiza se o evento veio de outro componente
+      if (categoryId !== selectedCategory) {
+        // Chama o callback sem disparar novo evento
+        // Isso é necessário para que o HomeLayout atualize seu estado
+        onCategorySelect(categoryId);
+      }
+    };
+    
+    window.addEventListener('categoryChanged', handleCategoryChange);
+    
+    return () => {
+      window.removeEventListener('categoryChanged', handleCategoryChange);
+    };
+  }, [selectedCategory, onCategorySelect]);
+
   const handleCategoryClick = (categoryId: string) => {
+    console.log(`FilterSection: Clicou na categoria ${categoryId}`);
+    
+    // Se estiver clicando na mesma categoria, desmarca
     if (selectedCategory === categoryId) {
-      onCategorySelect(null); // Desmarca se for a mesma categoria
+      onCategorySelect(null);
+      
+      // Disparar evento para notificar outros componentes
+      const event = new CustomEvent('categoryChanged', { 
+        detail: { 
+          categoryId: null,
+          categoryName: null 
+        } 
+      });
+      window.dispatchEvent(event);
     } else {
-      onCategorySelect(categoryId); // Seleciona a nova categoria
+      // Seleciona nova categoria
+      onCategorySelect(categoryId);
+      
+      // Buscar o nome da categoria
+      const category = categories.find(c => c.id === categoryId);
+      if (category) {
+        // Disparar evento para notificar outros componentes
+        const event = new CustomEvent('categoryChanged', { 
+          detail: { 
+            categoryId: categoryId,
+            categoryName: category.name 
+          } 
+        });
+        window.dispatchEvent(event);
+      }
     }
   };
 
   const clearFilters = () => {
     onCategorySelect(null);
+    
+    // Disparar evento para notificar outros componentes
+    const event = new CustomEvent('categoryChanged', { 
+      detail: { 
+        categoryId: null,
+        categoryName: null 
+      } 
+    });
+    window.dispatchEvent(event);
   };
 
   return (
@@ -72,8 +128,10 @@ const FilterSection = ({ onCategorySelect, selectedCategory }: FilterSectionProp
             {categories.map((category) => (
               <li 
                 key={category.id} 
-                className="flex items-center justify-between group cursor-pointer"
+                className="flex items-center justify-between group cursor-pointer category-button"
                 onClick={() => handleCategoryClick(category.id)}
+                data-category-id={category.id}
+                data-category-name={category.name}
               >
                 <div className="flex items-center">
                   <span className="text-sm font-medium text-dot-dark-text group-hover:text-dot-brand-blue transition-colors duration-300">
