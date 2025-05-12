@@ -222,7 +222,7 @@ const GiftCardItem = ({ giftCard, bgColor, viewMode = 'grid' }: GiftCardItemProp
               <div className="h-5 w-24 bg-white/10 animate-pulse rounded"></div>
             ) : kwanzaPrice ? (
               <div>
-                <div className="text-white font-bold text-lg drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                <div className="text-white font-bold text-base sm:text-lg drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                   {kwanzaPrice.toLocaleString('pt-AO', { maximumFractionDigits: 0 })} Kz
                 </div>
                 {giftCard.has_discount && (
@@ -321,7 +321,7 @@ const GiftCardItem = ({ giftCard, bgColor, viewMode = 'grid' }: GiftCardItemProp
               <div className="h-4 bg-gray-200 animate-pulse rounded w-20 my-1"></div>
             ) : kwanzaPrice ? (
               <div className="flex items-start flex-col mt-1">
-                <div className="text-gray-900 font-bold">
+                <div className="text-gray-900 font-bold text-base md:text-lg">
                   {kwanzaPrice.toLocaleString('pt-AO', { maximumFractionDigits: 0 })} Kz
                 </div>
                 {giftCard.has_discount && (

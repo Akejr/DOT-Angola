@@ -6,7 +6,7 @@ import HeroBanner from "./HeroBanner";
 import FilterSection from "./FilterSection";
 import GiftCardGrid from "./GiftCardGrid";
 import { GiftCard } from "@/types/supabase";
-import { getGiftCards } from "@/lib/database";
+import { getGiftCards, getExchangeRates } from "@/lib/database";
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import GiftCardItem from "./GiftCardItem";
 import { supabase } from "@/lib/supabase";
@@ -19,6 +19,7 @@ const HomeLayout = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStartX, setTouchStartX] = useState(0);
   const [touchEndX, setTouchEndX] = useState(0);
+  const [exchangeRates, setExchangeRates] = useState<any[]>([]);
   const sliderRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -26,6 +27,9 @@ const HomeLayout = () => {
       try {
         setLoading(true);
         const cards = await getGiftCards();
+        // Carregar taxas de câmbio
+        const rates = await getExchangeRates();
+        setExchangeRates(rates);
         // Filtra os gift cards destacados e limita a 8 itens
         const featured = cards
           .filter(card => card.is_featured)
@@ -129,6 +133,31 @@ const HomeLayout = () => {
     setCurrentIndex(prev => Math.min(prev + 1, maxIndex));
   };
 
+  // Função para converter preço para Kwanzas
+  const convertPriceToKwanzas = (card: GiftCard) => {
+    // Determinar o menor preço entre os planos disponíveis
+    let basePrice = card.original_price;
+    
+    // Se o gift card tiver planos, encontrar o menor preço entre eles
+    if (card.plans && card.plans.length > 0) {
+      const lowestPricePlan = card.plans.reduce((lowest, current) => 
+        current.price < lowest.price ? current : lowest, card.plans[0]);
+      
+      basePrice = lowestPricePlan.price;
+    }
+    
+    // Encontrar a taxa de câmbio correspondente à moeda do gift card
+    const rate = exchangeRates.find((r: any) => r.currency === card.currency);
+    
+    if (rate) {
+      // Converter diretamente usando a taxa correspondente à moeda do gift card
+      const priceInKwanzas = basePrice * rate.rate;
+      return priceInKwanzas.toLocaleString('pt-AO', { maximumFractionDigits: 0 }) + " Kz";
+    } else {
+      return "Preço indisponível";
+    }
+  };
+
   return (
     <>
       <SEO 
@@ -192,9 +221,9 @@ const HomeLayout = () => {
                               <h3 className="text-white text-xs font-medium leading-tight truncate">
                                 {featuredCards[0].name}
                               </h3>
-                              {featuredCards[0].plans && featuredCards[0].plans[0] && (
+                              {!loading && (
                                 <p className="text-white/90 text-xs mt-0.5 font-bold">
-                                  AOA {featuredCards[0].plans[0].price.toFixed(2).replace(".", ",")}
+                                  {convertPriceToKwanzas(featuredCards[0])}
                                 </p>
                               )}
                             </div>
@@ -227,9 +256,9 @@ const HomeLayout = () => {
                               <h3 className="text-white text-xs font-medium leading-tight truncate">
                                 {featuredCards[1].name}
                               </h3>
-                              {featuredCards[1].plans && featuredCards[1].plans[0] && (
+                              {!loading && (
                                 <p className="text-white/90 text-xs mt-0.5 font-bold">
-                                  AOA {featuredCards[1].plans[0].price.toFixed(2).replace(".", ",")}
+                                  {convertPriceToKwanzas(featuredCards[1])}
                                 </p>
                               )}
                             </div>
@@ -262,9 +291,9 @@ const HomeLayout = () => {
                               <h3 className="text-white text-xs font-medium leading-tight truncate">
                                 {featuredCards[2].name}
                               </h3>
-                              {featuredCards[2].plans && featuredCards[2].plans[0] && (
+                              {!loading && (
                                 <p className="text-white/90 text-xs mt-0.5 font-bold">
-                                  AOA {featuredCards[2].plans[0].price.toFixed(2).replace(".", ",")}
+                                  {convertPriceToKwanzas(featuredCards[2])}
                                 </p>
                               )}
                             </div>

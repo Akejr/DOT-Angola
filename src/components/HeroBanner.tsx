@@ -106,7 +106,7 @@ const HeroBanner = () => {
     </div>
 
       {/* Banner Mobile - semelhante ao desktop, otimizado */}
-      <div className="relative overflow-hidden h-44 xs:h-52 sm:h-60 w-full md:hidden">
+      <div className="relative overflow-hidden h-56 xs:h-64 sm:h-72 w-full md:hidden">
         {banners.map((banner, index) => (
           <div
             key={banner.id}
@@ -123,15 +123,15 @@ const HeroBanner = () => {
           </div>
         ))}
         <div className="absolute inset-0 flex flex-col justify-center items-start px-4 z-20">
-          <h1 className="text-white text-lg xs:text-xl font-bold drop-shadow-lg mb-1 leading-tight max-w-[90%]">
+          <h1 className="text-white text-xl xs:text-2xl font-bold drop-shadow-lg mb-2 leading-tight max-w-[90%]">
             {banners[currentBanner].title}
           </h1>
-          <p className="text-white/90 text-xs xs:text-sm mb-2 drop-shadow max-w-[90%]">
+          <p className="text-white/90 text-sm xs:text-base mb-3 drop-shadow max-w-[90%]">
             {banners[currentBanner].description}
           </p>
           <Link to={banners[currentBanner].link} className="flex justify-start">
-            <Button className="w-auto bg-white text-dot-brand-blue font-semibold text-[10px] px-3 h-7 rounded-lg shadow flex items-center gap-1 min-h-0">
-              Explorar Agora <ArrowRight className="h-3 w-3" />
+            <Button className="w-auto bg-white text-dot-brand-blue font-semibold text-xs px-4 h-9 rounded-lg shadow flex items-center gap-1 min-h-0">
+              Explorar Agora <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </Link>
         </div>

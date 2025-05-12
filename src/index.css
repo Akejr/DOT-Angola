@@ -315,6 +315,22 @@ body {
   animation: fadeIn 0.4s ease-out forwards;
 }
 
+/* Animação de fade-in de baixo para cima para componentes como botões flutuantes */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.3s ease-out forwards;
+}
+
 /* Animação de hover para os novos cards de gift card */
 @keyframes slideUp {
   from {
@@ -446,7 +462,7 @@ body {
 /* Mobile: reduzir tamanho de fontes e espaçamentos */
 @media (max-width: 639px) {
   .gift-card-modern h3 {
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     margin-bottom: 0.25rem;
   }
   
@@ -455,11 +471,11 @@ body {
   }
   
   .gift-card-modern .text-base {
-    font-size: 0.8rem;
+    font-size: 0.875rem;
   }
   
   .gift-card-modern .text-lg {
-    font-size: 0.9rem;
+    font-size: 1.125rem;
   }
   
   .gift-card-modern .px-4 {

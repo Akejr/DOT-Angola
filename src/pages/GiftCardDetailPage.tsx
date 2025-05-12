@@ -543,30 +543,6 @@ export default function GiftCardDetailPage() {
             </div>
           </footer>
         </div>
-        
-        {/* Footer idêntico ao do HomeLayout */}
-        <footer className="bg-gray-50 p-6 border-t">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center gap-2 mb-4 md:mb-0">
-              <img 
-                src="/images/sczs.png" 
-                alt="Logo" 
-                width={32} 
-                height={32}
-                className="h-8 w-auto"
-              />
-            </div>
-            <div className="flex flex-wrap justify-center gap-6">
-              <a href="#" className="text-sm text-gray-500 hover:text-blue-600 transition-colors duration-300">Sobre Nós</a>
-              <a href="#" className="text-sm text-gray-500 hover:text-blue-600 transition-colors duration-300">Termos e Condições</a>
-              <a href="#" className="text-sm text-gray-500 hover:text-blue-600 transition-colors duration-300">Política de Privacidade</a>
-              <a href="#" className="text-sm text-gray-500 hover:text-blue-600 transition-colors duration-300">Contato</a>
-            </div>
-            <div className="mt-4 md:mt-0">
-              <p className="text-sm text-gray-500">© 2025. Todos os direitos reservados.</p>
-            </div>
-          </div>
-        </footer>
       </div>
     </>
   );
