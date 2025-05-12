@@ -1,0 +1,32 @@
+# Permitir todos os robôs de busca
+User-agent: *
+Allow: /
+
+# Bots específicos dos principais mecanismos de busca
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Yandex
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+# Bots de redes sociais
+User-agent: Twitterbot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+# Caminho para o sitemap
+Sitemap: https://dotangola.com/sitemap.xml
+
+# Host definido para evitar conteúdo duplicado
+Host: https://dotangola.com

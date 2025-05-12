@@ -1,0 +1,23 @@
+/* Estilos de personalização para os cards */
+
+.gift-card-small .gift-card-modern {
+  height: 180px !important;
+}
+
+@media (min-width: 640px) {
+  .gift-card-small .gift-card-modern {
+    height: 190px !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .gift-card-small .gift-card-modern {
+    height: 200px !important;
+  }
+}
+
+/* Ajuste para o modo de lista */
+.gift-card-small .gift-card-list {
+  height: auto !important;
+  min-height: 100px !important;
+} 
