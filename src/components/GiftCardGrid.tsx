@@ -34,9 +34,46 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
   const sentinelRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const [selectedCategoryName, setSelectedCategoryName] = useState<string | null>(null);
+  // Estado para controlar se estamos em mobile ou desktop
+  const [isMobile, setIsMobile] = useState(false);
+  // Referência para o objeto window
+  const windowRef = useRef<Window | null>(null);
 
   // Use the external selectedCategory from props if provided, otherwise use internal state
   const selectedCategory = externalSelectedCategory !== undefined ? externalSelectedCategory : internalSelectedCategory;
+
+  // Efeito para detectar se estamos em mobile ou desktop
+  useEffect(() => {
+    // Verificar se estamos no navegador
+    if (typeof window !== 'undefined') {
+      windowRef.current = window;
+      
+      // Função para verificar o tamanho da tela
+      const checkIfMobile = () => {
+        setIsMobile(window.innerWidth < 768); // 768px é o breakpoint do md no Tailwind
+      };
+      
+      // Verificar inicialmente
+      checkIfMobile();
+      
+      // Adicionar listener para redimensionamento
+      window.addEventListener('resize', checkIfMobile);
+      
+      // Limpar listener quando o componente for desmontado
+      return () => {
+        window.removeEventListener('resize', checkIfMobile);
+      };
+    }
+  }, []);
+
+  // Efeito para definir o número inicial de cards a mostrar com base no dispositivo
+  useEffect(() => {
+    if (isMobile) {
+      setVisibleCardCount(6); // No mobile, mostrar 6 cards
+    } else {
+      setVisibleCardCount(12); // No desktop, mostrar 12 cards
+    }
+  }, [isMobile]);
 
   // Efeito para buscar o nome da categoria selecionada
   useEffect(() => {
@@ -219,8 +256,8 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
     console.log(`Resultado: ${sorted.length} gift cards após filtragem e ordenação`);
     
     setFilteredCards(sorted);
-    setVisibleCardCount(12); // Resetar para mostrar apenas os primeiros 12 cards
-  }, [selectedCategory, allGiftCards, sortBy, categories]);
+    setVisibleCardCount(isMobile ? 6 : 12); // Resetar para mostrar apenas os primeiros cards baseado no dispositivo
+  }, [selectedCategory, allGiftCards, sortBy, categories, isMobile]);
 
   // Atualizar cards exibidos
   useEffect(() => {
@@ -247,9 +284,17 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
     };
   }, [showCategoryDropdown]);
 
-  // Configurar o IntersectionObserver para detecção mais eficiente do scroll
+  // Configurar o IntersectionObserver para detecção mais eficiente do scroll - apenas para desktop
   const setupIntersectionObserver = useCallback(() => {
-    if (!sentinelRef.current) return;
+    // Não configurar o IntersectionObserver no mobile
+    if (!sentinelRef.current || isMobile) {
+      // Se estamos no mobile e o observer existe, desconectá-lo
+      if (isMobile && observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
+      }
+      return;
+    }
 
     // Desconectar o observer anterior se existir
     if (observerRef.current) {
@@ -270,12 +315,12 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
     }, options);
 
     observerRef.current.observe(sentinelRef.current);
-  }, [displayedCards.length, filteredCards.length, loadingMore]);
+  }, [displayedCards.length, filteredCards.length, loadingMore, isMobile]);
 
-  // Configurar observer quando displayedCards ou filteredCards mudam
+  // Configurar observer quando displayedCards ou filteredCards mudam - apenas para desktop
   useEffect(() => {
     setupIntersectionObserver();
-  }, [displayedCards, filteredCards, setupIntersectionObserver]);
+  }, [displayedCards, filteredCards, setupIntersectionObserver, isMobile]);
 
   // Função para carregar dados
   const loadData = async () => {
@@ -298,7 +343,7 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
         
         setAllGiftCards(cards);
         setFilteredCards(cards);
-        setDisplayedCards(cards.slice(0, visibleCardCount));
+        setDisplayedCards(cards.slice(0, isMobile ? 6 : visibleCardCount));
         setInitialDataLoaded(true);
         
         setCategories(cats);
@@ -351,20 +396,55 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
     return categoryMap;
   }, []);
 
-  // Carregar mais cards
+  // Carregar mais cards - específico por dispositivo
   const loadMoreCards = useCallback(() => {
     if (displayedCards.length >= filteredCards.length || loadingMore) return;
     
+    // Iniciar o estado de carregamento
     setLoadingMore(true);
     
-    requestAnimationFrame(() => {
-      setVisibleCardCount(prevCount => prevCount + 8);
+    // Se for mobile, escondemos o botão temporariamente
+    if (isMobile) {
+      const btnVerMais = document.getElementById('btn-ver-mais');
+      if (btnVerMais) {
+        btnVerMais.style.display = 'none';
+      }
+    }
+    
+    // Processar o carregamento de novos cards após um pequeno delay
+    setTimeout(() => {
+      // Determinar quantos cards carregar com base no dispositivo
+      const cardsToAdd = isMobile ? 6 : 8;
       
+      // Atualizar o número de cards visíveis
+      setVisibleCardCount(prevCount => prevCount + cardsToAdd);
+      
+      // Esperar que o DOM seja atualizado antes de mostrar o botão novamente
       setTimeout(() => {
         setLoadingMore(false);
+        
+        // Para mobile: mostrar o botão novamente
+        if (isMobile) {
+          // Garantir que os novos cards tenham sido renderizados
+          setTimeout(() => {
+            // Restaurar a visibilidade do botão
+            const btnVerMais = document.getElementById('btn-ver-mais');
+            if (btnVerMais) {
+              btnVerMais.style.display = 'inline-block';
+            }
+            
+            // Rolar até o botão "Ver mais" para garantir que ele esteja visível
+            if (sentinelRef.current) {
+              window.scrollTo({
+                top: sentinelRef.current.offsetTop - 100,
+                behavior: 'smooth'
+              });
+            }
+          }, 50);
+        }
       }, 200);
-    });
-  }, [displayedCards.length, filteredCards.length, loadingMore]);
+    }, 100);
+  }, [displayedCards.length, filteredCards.length, loadingMore, isMobile]);
 
   // Manipulador de seleção de categoria para o botão mobile
   const handleCategorySelect = useCallback((categoryId: string | null) => {
@@ -415,7 +495,8 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
       });
       
       setFilteredCards(filtered);
-      setVisibleCardCount(12);  // Resetar para mostrar apenas os primeiros 12 cards
+      // Resetar a contagem para mostrar apenas os primeiros cards com base no dispositivo
+      setVisibleCardCount(isMobile ? 6 : 12);
       console.log(`Filtrados ${filtered.length} gift cards de ${allGiftCards.length} para a categoria ${categoryId}`);
     }
   }, [allGiftCards, categories]);
@@ -468,7 +549,7 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
   };
 
   return (
-    <div>
+    <div className="gift-card-grid-container">
       <LoadingOptimizer
         loading={loading}
         initialDataLoaded={initialDataLoaded}
@@ -590,7 +671,7 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
             </div>
           </div>
           
-          {/* Lista de Gift Cards */}
+          {/* Lista de Gift Cards - layout diferente para mobile e desktop */}
           {filteredCards.length === 0 ? (
             <div className="text-center py-16 bg-gray-50 rounded-lg">
               <p className="text-gray-500 mb-2">Nenhum gift card encontrado</p>
@@ -602,40 +683,63 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
               </button>
             </div>
           ) : (
-            <div 
-              ref={cardsContainerRef}
-              className={
-                viewMode === 'grid' 
-                  ? "gift-card-container relative"
-                  : "flex flex-col space-y-6 relative"
-              }
-            >
-              {renderGiftCards()}
+            <div id="gift-cards-wrapper">
+              {/* Container dos cards - diferente para mobile e desktop */}
+              <div 
+                ref={cardsContainerRef}
+                className={`
+                  ${isMobile 
+                    ? "grid grid-cols-2 gap-3" 
+                    : viewMode === 'grid' 
+                      ? "gift-card-container" 
+                      : "flex flex-col space-y-6"
+                  }
+                  ${isMobile ? "mobile-gift-card-display" : ""}
+                `}
+                style={{ 
+                  overflow: isMobile ? 'visible' : 'auto',
+                  paddingBottom: isMobile ? '0.5rem' : '0'
+                }}
+              >
+                {renderGiftCards()}
+              </div>
               
-              {/* Elemento sentinela para detecção de scroll - otimizado */}
-              {displayedCards.length < filteredCards.length && (
+              {/* Botão "Ver mais" apenas para mobile */}
+              {isMobile && displayedCards.length < filteredCards.length && (
                 <div 
-                  id="cards-sentinel" 
+                  className="my-2 text-center"
                   ref={sentinelRef}
-                  className="h-20 w-full flex items-center justify-center my-4"
                 >
                   {loadingMore ? (
-                    <div className="flex flex-col items-center space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-4 h-4 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                        <div className="w-4 h-4 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                        <div className="w-4 h-4 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                      </div>
-                      <span className="text-sm text-gray-500">Carregando mais items...</span>
+                    <div className="inline-flex items-center justify-center space-x-2 bg-gray-100 px-6 py-2 rounded-lg">
+                      <div className="w-3 h-3 rounded-full bg-secondary animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                      <div className="w-3 h-3 rounded-full bg-secondary animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                      <div className="w-3 h-3 rounded-full bg-secondary animate-bounce" style={{ animationDelay: '300ms' }}></div>
                     </div>
                   ) : (
                     <button 
+                      id="btn-ver-mais"
                       onClick={loadMoreCards}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm transition-colors flex items-center gap-2"
+                      className="inline-block px-6 py-2 bg-secondary text-white font-medium text-sm rounded-md shadow-sm hover:shadow-md"
                     >
-                      <span>Carregar mais</span>
-                      <ChevronDown className="h-4 w-4" />
+                      Ver mais
                     </button>
+                  )}
+                </div>
+              )}
+              
+              {/* Elemento sentinela para desktop (carregamento automático) */}
+              {!isMobile && displayedCards.length < filteredCards.length && (
+                <div 
+                  ref={sentinelRef}
+                  className="h-20 w-full flex items-center justify-center my-4"
+                >
+                  {loadingMore && (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 rounded-full bg-secondary animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                      <div className="w-3 h-3 rounded-full bg-secondary animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                      <div className="w-3 h-3 rounded-full bg-secondary animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    </div>
                   )}
                 </div>
               )}
