@@ -144,6 +144,14 @@ function FloatingMenuMobile({ selectedId, handleClick }: { selectedId: number, h
     mobileButton.id = 'mobile-menu-floating-btn';
     mobileButton.style.position = 'fixed';
     
+    // Verificar se estamos em mobile antes de mostrar o botão
+    const isMobileDevice = window.innerWidth < 768; // 768px é o breakpoint md do Tailwind
+    
+    // Só mostrar o botão em dispositivos móveis
+    if (!isMobileDevice) {
+      return () => {}; // Não fazer nada em desktop
+    }
+    
     // Tentar recuperar a posição salva do botão
     let savedPosition = null;
     try {
@@ -292,7 +300,10 @@ function FloatingMenuMobile({ selectedId, handleClick }: { selectedId: number, h
     
     // Limpar ao desmontar
     return () => {
-      document.body.removeChild(mobileButton);
+      // Verificar se o botão ainda existe antes de remover
+      if (document.getElementById('mobile-menu-floating-btn')) {
+        document.body.removeChild(mobileButton);
+      }
       document.removeEventListener('mousemove', handleMove);
       document.removeEventListener('touchmove', handleMove);
       document.removeEventListener('mouseup', handleEnd);
@@ -316,6 +327,33 @@ function FloatingMenuMobile({ selectedId, handleClick }: { selectedId: number, h
       }
     }
   }, [open]);
+
+  // Adicionar listener para detectar mudanças no tamanho da tela
+  useEffect(() => {
+    const handleResize = () => {
+      const isMobileDevice = window.innerWidth < 768; // 768px é o breakpoint md do Tailwind
+      const btn = document.getElementById('mobile-menu-floating-btn');
+      
+      if (btn) {
+        if (isMobileDevice) {
+          btn.style.display = 'flex';  // Mostrar em mobile
+        } else {
+          btn.style.display = 'none';  // Esconder em desktop
+        }
+      }
+    };
+    
+    // Verificar inicialmente
+    handleResize();
+    
+    // Adicionar listener para quando a tela mudar de tamanho
+    window.addEventListener('resize', handleResize);
+    
+    // Limpar o listener quando o componente for desmontado
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   return (
     <>
