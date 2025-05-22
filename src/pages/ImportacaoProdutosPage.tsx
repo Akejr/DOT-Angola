@@ -1156,8 +1156,8 @@ export default function ImportacaoProdutosPage() {
         title="Importação de Produtos"
         description="Solicite a importação de produtos por meio da DOT. Preenchendo o formulário, nossa equipe entrará em contato para finalizar seu pedido."
       />
-      <div className="min-h-screen bg-gray-100 py-4">
-        <div className="max-w-6xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col min-h-[calc(100vh-2rem)]">
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-0 sm:p-4">
+        <div className="max-w-6xl w-full bg-white rounded-none sm:rounded-3xl shadow-xl overflow-hidden flex flex-col min-h-screen sm:min-h-[calc(100vh-2rem)]">
           <Header />
           <Navigation onPageChange={handlePageChange} />
           

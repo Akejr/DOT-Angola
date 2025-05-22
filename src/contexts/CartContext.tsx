@@ -89,6 +89,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     
     // Abrir o carrinho automaticamente quando adiciona um item
     setCartOpen(true);
+
+    // Fazer scroll para o topo da página para o usuário ver que adicionou ao carrinho
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
   };
 
   // Remover item do carrinho

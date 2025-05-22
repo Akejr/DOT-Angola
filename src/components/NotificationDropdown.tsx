@@ -2,18 +2,30 @@ import { useState, useEffect, useRef } from 'react';
 import { Bell, Check, AlertTriangle, Info, X, Clock } from 'lucide-react';
 import { getActiveNotifications, Notification } from '@/lib/database';
 
+// Estado global para armazenar as notificações já carregadas
+let cachedNotifications: Notification[] | null = null;
+
 export default function NotificationDropdown({ onClose }: { onClose: () => void }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const loadedRef = useRef(false);
 
   useEffect(() => {
-    // Carregar notificações ativas
+    // Carregar notificações ativas apenas se ainda não tiverem sido carregadas
     const loadNotifications = async () => {
+      // Usar cache se disponível
+      if (cachedNotifications) {
+        setNotifications(cachedNotifications);
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         const activeNotifications = await getActiveNotifications();
         setNotifications(activeNotifications);
+        cachedNotifications = activeNotifications; // Armazenar no cache
       } catch (error) {
         console.error('Erro ao carregar notificações:', error);
       } finally {
@@ -21,7 +33,11 @@ export default function NotificationDropdown({ onClose }: { onClose: () => void 
       }
     };
 
-    loadNotifications();
+    // Carregar apenas uma vez quando o componente é montado
+    if (!loadedRef.current) {
+      loadNotifications();
+      loadedRef.current = true;
+    }
 
     // Detectar clique fora do dropdown para fechá-lo
     const handleClickOutside = (event: MouseEvent) => {

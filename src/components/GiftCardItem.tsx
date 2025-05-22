@@ -176,7 +176,6 @@ const GiftCardItem = ({ giftCard, bgColor, viewMode = 'grid' }: GiftCardItemProp
               onError={handleImageError}
               loading="lazy"
               decoding="async"
-              fetchPriority="low"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-100">
@@ -288,7 +287,6 @@ const GiftCardItem = ({ giftCard, bgColor, viewMode = 'grid' }: GiftCardItemProp
                 onError={handleImageError}
                 loading="lazy"
                 decoding="async"
-                fetchPriority="low"
               />
             ) : (
               <div className={`w-full h-full flex items-center justify-center ${bgColor}`}>

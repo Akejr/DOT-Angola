@@ -84,7 +84,6 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
         if (categories.length > 0) {
           const category = categories.find(c => c.id === selectedCategory);
           if (category) {
-            console.log(`Nome da categoria encontrado em cache: ${category.name}`);
             setSelectedCategoryName(category.name);
             return;
           }
@@ -92,17 +91,14 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
         
         // Se não encontrou nas categorias carregadas, buscar do servidor
         try {
-          console.log("Buscando categorias do servidor para nome da categoria selecionada");
           setCategoriesLoading(true);
           const cats = await getCategories();
           setCategories(cats);
           
           const category = cats.find(c => c.id === selectedCategory);
           if (category) {
-            console.log(`Nome da categoria encontrado no servidor: ${category.name}`);
             setSelectedCategoryName(category.name);
           } else {
-            console.log(`Categoria com ID ${selectedCategory} não encontrada`);
             setSelectedCategoryName("Categoria");
           }
         } catch (error) {
@@ -123,7 +119,6 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
   useEffect(() => {
     const handleCategoryChange = (event: any) => {
       const { categoryId, categoryName } = event.detail;
-      console.log(`GiftCardGrid: Recebeu evento de categoria alterada: ${categoryName} (${categoryId})`);
       
       // Atualizar o nome da categoria diretamente
       if (categoryName) {
@@ -150,19 +145,14 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
   // Sincronizar com props externas quando elas mudarem
   useEffect(() => {
     if (externalSelectedCategory !== undefined) {
-      console.log(`Recebendo categoria externa: ${externalSelectedCategory || 'todas'}`);
       setInternalSelectedCategory(externalSelectedCategory);
       
       // Carregar categorias se estiverem vazias ou se houver uma categoria selecionada
       if (categories.length === 0 || externalSelectedCategory) {
         const loadCats = async () => {
-          console.log("Carregando categorias para mostrar o nome da categoria selecionada");
           try {
             const cats = await getCategories();
-            console.log(`Carregadas ${cats.length} categorias ao receber categoria externa`);
             setCategories(cats);
-            const categoryName = cats.find(c => c.id === externalSelectedCategory)?.name;
-            console.log(`Nome da categoria externa: ${categoryName || 'não encontrado'}`);
           } catch (error) {
             console.error("Erro ao carregar categorias:", error);
           }
@@ -176,7 +166,7 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
   useEffect(() => {
     if (categories.length > 0 && selectedCategory) {
       const categoryName = categories.find(c => c.id === selectedCategory)?.name;
-      console.log(`Categoria selecionada atualizada: ${categoryName || 'não encontrado'} (ID: ${selectedCategory})`);
+      // Atualização silenciosa, sem logs
     }
   }, [categories, selectedCategory]);
 
@@ -197,17 +187,12 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
   useEffect(() => {
     if (!allGiftCards.length) return;
     
-    console.log("Aplicando filtros. Categoria:", selectedCategory, "Ordenação:", sortBy);
-    
     // Função para filtrar por categoria
     const filterByCategory = (cards: GiftCard[]): GiftCard[] => {
       if (!selectedCategory) return cards;
       
-      console.log(`Filtrando ${cards.length} gift cards pela categoria ${selectedCategory}`);
-      
       // Encontrar e exibir o nome da categoria para debug
       const categoryName = categories.find(c => c.id === selectedCategory)?.name;
-      console.log(`Nome da categoria selecionada: ${categoryName || 'desconhecido'}`);
       
       const filtered = cards.filter(card => {
         // Verificar se o card tem categorias definidas
@@ -220,16 +205,12 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
           if (!relation.categories) return false;
           const categoryId = relation.categories.id;
           const matches = categoryId === selectedCategory;
-          if (matches) {
-            console.log(`Card ${card.name} pertence à categoria ${selectedCategory}`);
-          }
           return matches;
         });
         
         return matchesCategory;
       });
       
-      console.log(`Encontrados ${filtered.length} cards para a categoria ${selectedCategory}`);
       return filtered;
     };
     
@@ -252,8 +233,6 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
     // Aplicar filtros e ordenação
     const filtered = filterByCategory(allGiftCards);
     const sorted = sortCards(filtered);
-    
-    console.log(`Resultado: ${sorted.length} gift cards após filtragem e ordenação`);
     
     setFilteredCards(sorted);
     setVisibleCardCount(isMobile ? 6 : 12); // Resetar para mostrar apenas os primeiros cards baseado no dispositivo
@@ -337,9 +316,6 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
           getCategories(),
           getExchangeRates()
         ]);
-        
-        console.log(`Carregados ${cards.length} gift cards`);
-        console.log(`Carregadas ${cats.length} categorias`);
         
         setAllGiftCards(cards);
         setFilteredCards(cards);

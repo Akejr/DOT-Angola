@@ -313,18 +313,18 @@ const VisaVirtualPage: React.FC = () => {
         description="Solicite seu cartão Visa Virtual pré-pago para compras online com segurança e praticidade. Ideal para compras internacionais."
         type="product"
       />
-      <div className="min-h-screen bg-gray-100 py-4">
-        <div className="max-w-6xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col min-h-[calc(100vh-2rem)]">
+      <div className="min-h-screen bg-gray-100">
+        <div className="max-w-6xl mx-auto bg-white rounded-t-3xl shadow-md overflow-hidden">
           <Header />
           <Navigation onPageChange={handlePageChange} />
           
           <div className="flex-grow flex flex-col">
-            <div className="py-6">
-              <div className="max-w-5xl mx-auto px-4">
+            <div className="p-6">
+              <div className="max-w-5xl mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {/* Cartão Virtual - Mantido intacto */}
-                  <div className="flex flex-col items-center justify-center">
-                    <div className="w-full max-w-md mx-auto">
+                  <div className="flex flex-col items-center justify-center rounded-xl shadow-sm border border-gray-100">
+                    <div className="w-full max-w-md mx-auto p-6">
                       <div 
                         className="card-container relative w-full aspect-[1.586/1] rounded-xl cursor-pointer perspective mx-auto"
                         onClick={() => setIsFlipped(!isFlipped)}
@@ -415,7 +415,7 @@ const VisaVirtualPage: React.FC = () => {
                   </div>
 
                   {/* Formulário Redesenhado */}
-                  <div className="bg-white rounded-xl shadow-lg p-8 min-h-[420px] flex flex-col justify-between">
+                  <div className="rounded-xl shadow-sm border border-gray-100 p-8 min-h-[420px] flex flex-col justify-between">
                     <div className="max-w-md mx-auto mb-8">
                       <div className="relative h-2 bg-gray-100 rounded-full overflow-hidden mb-8">
                         <div 
@@ -715,8 +715,8 @@ const VisaVirtualPage: React.FC = () => {
                 </div>
 
                 {/* Informações do Cartão */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-                  <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 mb-8">
+                  <div className="border border-gray-100 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-center mb-4">
                       <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-3">
                         <Check className="w-4 h-4 text-green-600" />
@@ -726,7 +726,7 @@ const VisaVirtualPage: React.FC = () => {
                     <p className="text-sm text-gray-600">Cartão válido para uma única compra, garantindo sua segurança.</p>
                   </div>
 
-                  <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                  <div className="border border-gray-100 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-center mb-4">
                       <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
                         <Clock className="w-4 h-4 text-blue-600" />
@@ -736,7 +736,7 @@ const VisaVirtualPage: React.FC = () => {
                     <p className="text-sm text-gray-600">Válido por 30 dias após a emissão do cartão.</p>
                   </div>
 
-                  <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                  <div className="border border-gray-100 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-center mb-4">
                       <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center mr-3">
                         <Globe className="w-4 h-4 text-purple-600" />
@@ -750,7 +750,7 @@ const VisaVirtualPage: React.FC = () => {
             </div>
           </div>
           
-          <footer className="bg-gray-50 p-4 border-t mt-auto">
+          <footer className="bg-gray-50 p-6 border-t">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <div className="flex items-center gap-2 mb-4 md:mb-0">
                 <img 
@@ -763,7 +763,7 @@ const VisaVirtualPage: React.FC = () => {
               </div>
               
               <div className="flex flex-wrap justify-center gap-6">
-                <a href="#" className="text-sm text-gray-500 hover:text-blue-600 transition-colors duration-300">Sobre Nós</a>
+                <a href="/sobre-nos" className="text-sm text-gray-500 hover:text-blue-600 transition-colors duration-300">Sobre Nós</a>
                 <a href="#" className="text-sm text-gray-500 hover:text-blue-600 transition-colors duration-300">Termos e Condições</a>
                 <a href="#" className="text-sm text-gray-500 hover:text-blue-600 transition-colors duration-300">Política de Privacidade</a>
                 <a href="#" className="text-sm text-gray-500 hover:text-blue-600 transition-colors duration-300">Contato</a>

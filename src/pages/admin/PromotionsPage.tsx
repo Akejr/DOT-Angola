@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Percent, Save, RefreshCw, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useToast } from '@/components/ui/use-toast';
+import { clearCache } from '@/lib/database';
 
 interface PromotionSettings {
   id?: string;
@@ -54,19 +56,12 @@ export default function PromotionsPage() {
 
   // Salvar configurações de promoção
   const handleSavePromotion = async () => {
+    setIsSaving(true);
     try {
-      setIsSaving(true);
-      
-      // Verifica se os valores são válidos
-      const discountPercentage = Number(globalPromotion.discount_percentage);
-      if (isNaN(discountPercentage) || discountPercentage < 0 || discountPercentage > 100) {
-        toast.error('Porcentagem de desconto deve ser um número entre 0 e 100');
-        return;
-      }
-
       const promotionData = {
-        ...globalPromotion,
-        discount_percentage: discountPercentage,
+        discount_percentage: globalPromotion.discount_percentage,
+        is_active: globalPromotion.is_active,
+        applies_to_all: true,
         updated_at: new Date().toISOString()
       };
 
@@ -79,10 +74,13 @@ export default function PromotionsPage() {
           .eq('id', globalPromotion.id);
       } else {
         // Criar nova promoção
-        promotionData.created_at = new Date().toISOString();
+        const newPromotionData = {
+          ...promotionData,
+          created_at: new Date().toISOString()
+        };
         response = await supabase
           .from('promotion_settings')
-          .insert([promotionData])
+          .insert([newPromotionData])
           .select();
       }
 
@@ -93,6 +91,11 @@ export default function PromotionsPage() {
       if (response.data && response.data[0]) {
         setGlobalPromotion(response.data[0]);
       }
+
+      // Limpar cache após salvar promoção
+      clearCache('promotionSettings');
+      clearCache('giftCards');
+      clearCache('giftCardDetails');
 
       toast.success('Configurações de promoção salvas com sucesso');
     } catch (error) {

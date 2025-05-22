@@ -12,8 +12,8 @@ const OutrosServicosPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-4">
-      <div className="max-w-6xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col min-h-[calc(100vh-2rem)]">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-0 sm:p-4">
+      <div className="max-w-6xl w-full bg-white rounded-none sm:rounded-3xl shadow-xl overflow-hidden flex flex-col min-h-screen sm:min-h-[calc(100vh-2rem)]">
         <Header />
         <Navigation onPageChange={handlePageChange} />
         
@@ -54,7 +54,7 @@ const OutrosServicosPage: React.FC = () => {
             </div>
           </div>
           
-          <footer className="bg-gray-50 p-4 border-t mt-auto">
+          <footer className="bg-gray-50 p-4 border-t">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <div className="flex items-center gap-2 mb-4 md:mb-0">
                 <img 

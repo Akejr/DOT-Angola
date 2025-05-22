@@ -13,10 +13,59 @@ export interface Notification {
   updated_at: string;
 }
 
+// Sistema de cache global para reduzir requisições ao Supabase
+const cacheStore = {
+  giftCards: {
+    data: null,
+    timestamp: 0
+  },
+  giftCardDetails: {
+    data: new Map(),
+    timestamp: 0
+  },
+  promotionSettings: {
+    data: null,
+    timestamp: 0
+  },
+  categories: {
+    data: null,
+    timestamp: 0
+  }
+};
+
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos em ms
+
+// Limpar o cache quando necessário (ex: após operações de escrita)
+export function clearCache(cacheKey = null) {
+  if (cacheKey) {
+    if (cacheStore[cacheKey]) {
+      if (cacheStore[cacheKey].data instanceof Map) {
+        cacheStore[cacheKey].data.clear();
+      } else {
+        cacheStore[cacheKey].data = null;
+      }
+      cacheStore[cacheKey].timestamp = 0;
+    }
+  } else {
+    Object.keys(cacheStore).forEach(key => {
+      if (cacheStore[key].data instanceof Map) {
+        cacheStore[key].data.clear();
+      } else {
+        cacheStore[key].data = null;
+      }
+      cacheStore[key].timestamp = 0;
+    });
+  }
+}
+
 // Gift Cards
 export async function getGiftCards() {
   try {
-    console.log('Iniciando getGiftCards');
+    // Verificar cache
+    const now = Date.now();
+    if (cacheStore.giftCards.data && now - cacheStore.giftCards.timestamp < CACHE_DURATION) {
+      return cacheStore.giftCards.data;
+    }
     
     // Primeiro, buscar os gift cards
     const { data: giftCards, error: giftCardsError } = await supabase
@@ -28,8 +77,6 @@ export async function getGiftCards() {
       console.error('Erro ao buscar gift cards:', giftCardsError);
       throw giftCardsError;
     }
-
-    console.log(`Encontrados ${giftCards.length} gift cards`);
 
     // Buscar configurações de promoção
     const promotionSettings = await getPromotionSettings();
@@ -95,7 +142,10 @@ export async function getGiftCards() {
       })
     );
 
-    console.log('getGiftCards concluído com sucesso');
+    // Salvar no cache
+    cacheStore.giftCards.data = giftCardsComplete;
+    cacheStore.giftCards.timestamp = now;
+
     return giftCardsComplete;
   } catch (error) {
     console.error('Erro crítico em getGiftCards:', error);
@@ -105,27 +155,25 @@ export async function getGiftCards() {
 
 export async function getGiftCardById(idOrSlug: string): Promise<GiftCard | null> {
   try {
-    console.log('Iniciando busca de gift card com id/slug:', idOrSlug);
-    
-    // Primeiro, tentar buscar por ID
-    let { data: giftCardData, error: giftCardError } = await supabase
-      .from('gift_cards')
-      .select('*')
-      .eq('id', idOrSlug)
-      .single();
-
-    // Se não encontrar por ID, tentar por slug
-    if (!giftCardData) {
-      console.log('Gift card não encontrado por ID, tentando por slug...');
-      const result = await supabase
-        .from('gift_cards')
-        .select('*')
-        .eq('slug', idOrSlug)
-        .single();
-      
-      giftCardData = result.data;
-      giftCardError = result.error;
+    // Verificar cache
+    const now = Date.now();
+    if (cacheStore.giftCardDetails.data.has(idOrSlug) && 
+        now - cacheStore.giftCardDetails.timestamp < CACHE_DURATION) {
+      return cacheStore.giftCardDetails.data.get(idOrSlug);
     }
+    
+    // Primeiro, tentar buscar por ID ou slug usando um filtro mais simples
+    let query = supabase.from('gift_cards').select('*');
+    
+    // Verificar se o idOrSlug parece ser um UUID
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (uuidPattern.test(idOrSlug)) {
+      query = query.eq('id', idOrSlug);
+    } else {
+      query = query.eq('slug', idOrSlug);
+    }
+    
+    const { data: giftCardData, error: giftCardError } = await query.single();
 
     if (giftCardError) {
       console.error('Erro ao buscar gift card:', giftCardError);
@@ -133,11 +181,8 @@ export async function getGiftCardById(idOrSlug: string): Promise<GiftCard | null
     }
 
     if (!giftCardData) {
-      console.log('Gift card não encontrado nem por ID nem por slug');
       return null;
     }
-
-    console.log('Gift card encontrado:', giftCardData);
 
     // Buscar configurações de promoção
     const promotionSettings = await getPromotionSettings();
@@ -150,33 +195,41 @@ export async function getGiftCardById(idOrSlug: string): Promise<GiftCard | null
       plans: []
     };
 
-    // Buscar categorias associadas
-    console.log('Buscando categorias para o gift card:', giftCard.id);
-    const { data: categories, error: categoriesError } = await supabase
-      .from('gift_card_categories')
-      .select(`
-        categories:category_id (
-          id,
-          name,
-          slug,
-          description,
-          created_at,
-          updated_at
-        )
-      `)
-      .eq('gift_card_id', giftCard.id);
+    // Buscar categorias associadas - modificado para evitar erro de consulta
+    try {
+      const { data: categoryRelations, error: categoriesError } = await supabase
+        .from('gift_card_categories')
+        .select(`
+          category_id,
+          categories:categories(id, name, slug, description)
+        `)
+        .eq('gift_card_id', giftCard.id);
 
-    if (categoriesError) {
-      console.error('Erro ao buscar categorias:', categoriesError);
-    } else if (categories) {
-      console.log('Categorias encontradas:', categories);
-      giftCard.gift_card_categories = categories.map(c => ({
-        categories: c.categories[0]
-      }));
+      if (categoriesError) {
+        console.error('Erro ao buscar categorias:', categoriesError);
+      } else if (categoryRelations && categoryRelations.length > 0) {
+        // Transformar os dados para corresponder ao formato esperado
+        giftCard.gift_card_categories = categoryRelations
+          .filter(relation => relation.categories)
+          .map(relation => {
+            const categoryData = relation.categories as any;
+            return {
+              categories: {
+                id: categoryData?.id || '',
+                name: categoryData?.name || '',
+                slug: categoryData?.slug || '',
+                description: categoryData?.description,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              }
+            };
+          });
+      }
+    } catch (catError) {
+      console.error('Erro ao processar categorias:', catError);
     }
 
     // Buscar planos associados
-    console.log('Buscando planos para o gift card:', giftCard.id);
     const { data: plans, error: plansError } = await supabase
       .from('gift_card_plans')
       .select('*')
@@ -186,8 +239,6 @@ export async function getGiftCardById(idOrSlug: string): Promise<GiftCard | null
     if (plansError) {
       console.error('Erro ao buscar planos:', plansError);
     } else if (plans) {
-      console.log('Planos encontrados:', plans);
-      
       // Aplicar desconto aos planos se a promoção estiver ativa
       let discountedPlans = plans;
       if (hasActivePromotion && discountPercentage > 0) {
@@ -212,7 +263,16 @@ export async function getGiftCardById(idOrSlug: string): Promise<GiftCard | null
       giftCard.discount_percentage = hasActivePromotion ? discountPercentage : 0;
     }
 
-    console.log('Gift card completo:', giftCard);
+    // Salvar no cache tanto por ID quanto por slug para facilitar buscas futuras
+    cacheStore.giftCardDetails.data.set(idOrSlug, giftCard);
+    if (giftCard.id && giftCard.id !== idOrSlug) {
+      cacheStore.giftCardDetails.data.set(giftCard.id, giftCard);
+    }
+    if (giftCard.slug && giftCard.slug !== idOrSlug) {
+      cacheStore.giftCardDetails.data.set(giftCard.slug, giftCard);
+    }
+    cacheStore.giftCardDetails.timestamp = now;
+
     return giftCard;
   } catch (error) {
     console.error('Erro crítico ao buscar gift card:', error);
@@ -304,11 +364,16 @@ export async function createGiftCard(data: Omit<GiftCard, 'id' | 'created_at' | 
 
   if (categoriesError) throw categoriesError;
 
-  return {
+  const result = {
     ...giftCard,
     plans: giftCardPlans || [],
     gift_card_categories: giftCardCategories || []
   };
+  
+  // Limpar cache após criar um novo gift card
+  clearCache('giftCards');
+  
+  return result;
 }
 
 export async function updateGiftCard(id: string, giftCard: Partial<GiftCard> & { categories?: string[] }) {
@@ -475,6 +540,10 @@ export async function updateGiftCard(id: string, giftCard: Partial<GiftCard> & {
       gift_card_categories: giftCardCategories || []
     };
     
+    // Limpar cache após atualizar um gift card
+    clearCache('giftCards');
+    clearCache('giftCardDetails');
+    
     console.log('Gift card atualizado com sucesso:', result);
     console.log('=== FIM DA ATUALIZAÇÃO DO GIFT CARD ===');
     
@@ -493,17 +562,37 @@ export async function deleteGiftCard(id: string) {
     .eq('id', id);
 
   if (error) throw error;
+  
+  // Limpar cache após excluir um gift card
+  clearCache('giftCards');
+  clearCache('giftCardDetails');
 }
 
 // Categories
 export async function getCategories() {
-  const { data, error } = await supabase
-    .from('categories')
-    .select('*')
-    .order('name');
+  try {
+    // Verificar cache
+    const now = Date.now();
+    if (cacheStore.categories.data && now - cacheStore.categories.timestamp < CACHE_DURATION) {
+      return cacheStore.categories.data;
+    }
+    
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .order('name');
 
-  if (error) throw error;
-  return data;
+    if (error) throw error;
+    
+    // Salvar no cache
+    cacheStore.categories.data = data;
+    cacheStore.categories.timestamp = now;
+    
+    return data;
+  } catch (error) {
+    console.error('Erro ao carregar categorias:', error);
+    throw error;
+  }
 }
 
 export async function createCategory(data: { name: string; description?: string }): Promise<Category> {
@@ -526,6 +615,10 @@ export async function createCategory(data: { name: string; description?: string 
     .single();
 
   if (error) throw error;
+  
+  // Limpar cache de categorias
+  clearCache('categories');
+  
   return category;
 }
 
@@ -551,6 +644,11 @@ export async function updateCategory(id: string, data: { name: string; descripti
     .single();
 
   if (error) throw error;
+  
+  // Limpar cache de categorias e gift cards que podem usar essa categoria
+  clearCache('categories');
+  clearCache('giftCards');
+  
   return category;
 }
 
@@ -561,6 +659,10 @@ export async function deleteCategory(id: string) {
     .eq('id', id);
 
   if (error) throw error;
+  
+  // Limpar cache de categorias e gift cards que podem usar essa categoria
+  clearCache('categories');
+  clearCache('giftCards');
 }
 
 // Exchange Rates
@@ -826,22 +928,44 @@ export async function getNotifications(): Promise<Notification[]> {
   return data || [];
 }
 
+// Cache para as notificações ativas
+let notificationCache: Notification[] | null = null;
+let lastNotificationFetch: number = 0;
+const NOTIFICATION_CACHE_DURATION = 10 * 60 * 1000; // 10 minutos em ms
+
 export async function getActiveNotifications(): Promise<Notification[]> {
-  const now = new Date().toISOString();
-  
-  const { data, error } = await supabase
-    .from('notifications')
-    .select('*')
-    .eq('is_active', true)
-    .or(`expires_at.gt.${now},expires_at.is.null`)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('Erro ao buscar notificações ativas:', error);
-    return [];
+  // Verificar se temos cache válido
+  const now = Date.now();
+  if (notificationCache && (now - lastNotificationFetch < NOTIFICATION_CACHE_DURATION)) {
+    console.log('Usando cache de notificações');
+    return notificationCache;
   }
+  
+  console.log('Buscando notificações no banco de dados');
+  const currentTime = new Date().toISOString();
+  
+  try {
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('is_active', true)
+      .or(`expires_at.gt.${currentTime},expires_at.is.null`)
+      .order('created_at', { ascending: false });
 
-  return data || [];
+    if (error) {
+      console.error('Erro ao buscar notificações ativas:', error);
+      return notificationCache || []; // Retornar cache antigo em caso de erro
+    }
+
+    // Atualizar cache
+    notificationCache = data || [];
+    lastNotificationFetch = now;
+    
+    return notificationCache;
+  } catch (error) {
+    console.error('Erro ao buscar notificações ativas:', error);
+    return notificationCache || []; // Retornar cache antigo em caso de erro
+  }
 }
 
 export async function createNotification(notification: Omit<Notification, 'id' | 'created_at' | 'updated_at'>): Promise<Notification> {
@@ -1056,19 +1180,33 @@ export async function fixAllGiftCardSlugs(): Promise<void> {
 // Função para buscar configurações de promoção global
 export async function getPromotionSettings() {
   try {
+    // Verificar cache
+    const now = Date.now();
+    if (cacheStore.promotionSettings.data && now - cacheStore.promotionSettings.timestamp < CACHE_DURATION) {
+      return cacheStore.promotionSettings.data;
+    }
+
+    // Alterar a abordagem para evitar o erro 406
+    // Primeiro buscar todas as configurações ativas
     const { data, error } = await supabase
       .from('promotion_settings')
       .select('*')
-      .eq('applies_to_all', true)
-      .eq('is_active', true)
-      .single();
-
-    if (error && error.code !== 'PGRST116') {
+      .eq('is_active', true);
+    
+    if (error) {
       console.error('Erro ao buscar configurações de promoção:', error);
       return null;
     }
 
-    return data;
+    // Depois filtrar para encontrar as que se aplicam a todos
+    const globalPromotion = data?.find(promo => promo.applies_to_all === true);
+    
+    // Salvar no cache
+    cacheStore.promotionSettings.data = globalPromotion || null;
+    cacheStore.promotionSettings.timestamp = now;
+    
+    return globalPromotion || null;
+
   } catch (error) {
     console.error('Erro ao buscar configurações de promoção:', error);
     return null;
