@@ -6,6 +6,7 @@ import { GiftCard, GiftCardPlan } from '@/types/supabase';
 import { useCart } from '@/contexts/CartContext';
 import { LoadingOptimizer, ProductDetailSkeleton } from '@/components/LoadingOptimizer';
 import MainLayout from '@/components/MainLayout';
+import RelatedProducts from '@/components/RelatedProducts';
 
 export default function GiftCardDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -31,7 +32,7 @@ export default function GiftCardDetailPage() {
 
   useEffect(() => {
     // Rolar para o topo da página quando o componente for montado
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: 'instant' });
     
     const loadGiftCard = async () => {
       if (!id) {
@@ -511,6 +512,14 @@ export default function GiftCardDetailPage() {
                 </div>
               </div>
             </div>
+          )}
+
+          {/* Seção "Você também pode gostar" */}
+          {giftCard && (
+            <RelatedProducts 
+              currentProductId={giftCard.id}
+              currentProductCategory={giftCard.gift_card_categories?.[0]?.categories?.name}
+            />
           )}
         </LoadingOptimizer>
       </div>

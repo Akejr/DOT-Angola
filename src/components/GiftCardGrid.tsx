@@ -561,19 +561,21 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
                     }
                     setShowCategoryDropdown((prev) => !prev);
                   }}
-                  className={`flex items-center justify-center gap-1 px-3 py-2 bg-white border ${selectedCategory ? 'border-blue-300' : 'border-gray-200'} rounded-lg text-sm font-medium ${selectedCategory ? 'text-blue-600' : 'text-gray-700'} hover:bg-gray-50 shadow-sm`}
+                  className={`flex items-center justify-between w-48 px-3 py-2 bg-white border ${selectedCategory ? 'border-blue-300' : 'border-gray-200'} rounded-lg text-sm font-medium ${selectedCategory ? 'text-blue-600' : 'text-gray-700'} hover:bg-gray-50 shadow-sm`}
                   aria-label="Selecionar categoria"
                   aria-expanded={showCategoryDropdown}
                   aria-controls="category-dropdown"
                 >
-                  <CheckIcon className={`h-4 w-4 ${selectedCategory ? 'text-blue-500' : 'text-gray-500'}`} />
-                  <span data-testid="mobile-category-button-text">
-                    {selectedCategory
-                      ? (selectedCategoryName || (categoriesLoading ? 'Carregando...' : 'Categoria'))
-                      : 'Selecionar categoria'
-                    }
-                  </span>
-                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${showCategoryDropdown ? 'transform rotate-180' : ''}`} />
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <CheckIcon className={`h-4 w-4 flex-shrink-0 ${selectedCategory ? 'text-blue-500' : 'text-gray-500'}`} />
+                    <span className="truncate">
+                      {selectedCategory
+                        ? (selectedCategoryName || (categoriesLoading ? 'Carregando...' : 'Categoria'))
+                        : 'Selecionar categoria'
+                      }
+                    </span>
+                  </div>
+                  <ChevronDown className={`h-4 w-4 flex-shrink-0 transition-transform duration-200 ${showCategoryDropdown ? 'transform rotate-180' : ''}`} />
                 </button>
                 
                 {/* Dropdown de categorias */}

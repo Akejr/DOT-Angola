@@ -12,6 +12,10 @@ import VisaVirtualPage from "./pages/VisaVirtualPage";
 import ImportacaoProdutosPage from "./pages/ImportacaoProdutosPage";
 import OutrosServicosPage from "./pages/OutrosServicosPage";
 import MaisVendidosPage from "./pages/MaisVendidosPage";
+import SobreNosPage from "./pages/SobreNosPage";
+import TermosPage from "./pages/TermosPage";
+import PrivacidadePage from "./pages/PrivacidadePage";
+import ContatoPage from "./pages/ContatoPage";
 import AdminLogin from '@/pages/admin/login';
 import TesteLogin from '@/pages/admin/teste-login';
 import NotFound from "./pages/NotFound";
@@ -44,8 +48,13 @@ export default function App() {
                       <Route path="/gift-card/:id" element={<GiftCardDetailPage />} />
                       <Route path="/visa-virtual" element={<VisaVirtualPage />} />
                       <Route path="/importacao" element={<ImportacaoProdutosPage />} />
+                      <Route path="/transferencias" element={<OutrosServicosPage />} />
                       <Route path="/outros-servicos" element={<OutrosServicosPage />} />
                       <Route path="/mais-vendidos" element={<MaisVendidosPage />} />
+                      <Route path="/sobre-nos" element={<SobreNosPage />} />
+                      <Route path="/termos" element={<TermosPage />} />
+                      <Route path="/privacidade" element={<PrivacidadePage />} />
+                      <Route path="/contato" element={<ContatoPage />} />
                       <Route path="/admin/login" element={<AdminLogin />} />
                       <Route path="/admin/teste-login" element={<TesteLogin />} />
                       <Route

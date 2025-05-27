@@ -13,7 +13,7 @@ const navItems = [
   { id: 1, name: "Gift Card", path: "/" },
   { id: 2, name: "Visa Virtual", path: "/visa-virtual" },
   { id: 3, name: "Importação de produtos", path: "/importacao" },
-  { id: 4, name: "Outros serviços", path: "/outros-servicos" },
+  { id: 4, name: "Transferências", path: "/transferencias" },
 ];
 
 interface NavigationProps {
@@ -135,7 +135,7 @@ function FloatingMenuMobile({ selectedId, handleClick }: { selectedId: number, h
     { id: 1, name: "Gift Card", icon: ShoppingBag, path: "/" },
     { id: 2, name: "Visa Virtual", icon: CreditCard, path: "/visa-virtual" },
     { id: 3, name: "Importação", icon: Package, path: "/importacao" },
-    { id: 4, name: "Outros serviços", icon: MoreHorizontal, path: "/outros-servicos" },
+    { id: 4, name: "Transferências", icon: MoreHorizontal, path: "/transferencias" },
   ];
 
   useEffect(() => {
