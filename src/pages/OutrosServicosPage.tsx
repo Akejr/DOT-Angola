@@ -337,23 +337,23 @@ Gostaria de realizar esta transferência internacional.`;
         <Navigation onPageChange={handlePageChange} />
         
           {/* Hero Section */}
-          <div className="px-6 py-16">
-            <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 items-center justify-center">
+          <div className="px-4 sm:px-6 py-8 sm:py-16">
+            <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-center">
               {/* Conteúdo da esquerda */}
-              <div className="text-center lg:text-left">
+              <div className="text-center lg:text-left order-2 lg:order-1">
                 <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 rounded-full px-4 py-2 mb-6">
                   <Globe className="w-4 h-4" />
                   <span className="text-sm font-medium">Transferências Globais</span>
                 </div>
                 
-                <h1 className="text-4xl lg:text-5xl font-bold text-gray-800 mb-6 leading-tight">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-800 mb-6 leading-tight">
                   Envie Dinheiro para
                   <span className="block text-blue-600">
                     Europa & Brasil
                   </span>
                 </h1>
                 
-                <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+                <p className="text-lg sm:text-xl text-gray-600 mb-8 leading-relaxed">
                   Transferências rápidas, seguras e com as melhores taxas do mercado. 
                   De Angola para o mundo todo.
                 </p>
@@ -409,139 +409,141 @@ Gostaria de realizar esta transferência internacional.`;
                 </div>
               </div>
               
-              {/* Calculadora da direita - NOVA LÓGICA PROFISSIONAL */}
-              <div id="calculator" className="bg-white rounded-2xl p-5 shadow-xl border border-gray-100 max-w-sm mx-auto">
-                {/* Header da Calculadora */}
-                <div className="text-center mb-4">
-                  <h3 className="text-lg font-bold text-gray-900 mb-1">Enviar Dinheiro</h3>
-                  <p className="text-gray-500 text-xs">Calcule sua transferência</p>
-                </div>
+              {/* Calculadora da direita - RESPONSIVA */}
+              <div id="calculator" className="w-full order-1 lg:order-2">
+                <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-xl border border-gray-100 w-full max-w-md mx-auto lg:max-w-sm">
+                  {/* Header da Calculadora */}
+                  <div className="text-center mb-4">
+                    <h3 className="text-lg font-bold text-gray-900 mb-1">Enviar Dinheiro</h3>
+                    <p className="text-gray-500 text-xs">Calcule sua transferência</p>
+                  </div>
 
-                {/* Cards de Envio e Recebimento */}
-                <div className="space-y-3">
-                  {/* Card Superior - Você Envia */}
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-3 border border-blue-100">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">VOCÊ ENVIA</span>
-                      <span className="text-xs font-semibold text-gray-700">{getCurrencyInfo(topCurrency).flag} {topCurrency}</span>
+                  {/* Cards de Envio e Recebimento */}
+                  <div className="space-y-3">
+                    {/* Card Superior - Você Envia */}
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-3 border border-blue-100">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">VOCÊ ENVIA</span>
+                        <span className="text-xs font-semibold text-gray-700">{getCurrencyInfo(topCurrency).flag} {topCurrency}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={topAmount}
+                          onChange={(e) => handleTopAmountChange(e.target.value)}
+                          placeholder="0,00"
+                          className="flex-1 text-xl font-bold text-gray-900 bg-transparent border-0 focus:outline-none placeholder-gray-400"
+                        />
+                        <select
+                          value={topCurrency}
+                          onChange={(e) => handleTopCurrencyChange(e.target.value as 'AOA' | 'EUR' | 'BRL')}
+                          className="appearance-none bg-white border border-gray-200 rounded-md px-2 py-1 text-xs font-semibold text-gray-700 focus:outline-none cursor-pointer"
+                        >
+                          <option value="AOA">{getCurrencyInfo('AOA').flag} AOA</option>
+                          <option value="EUR">{getCurrencyInfo('EUR').flag} EUR</option>
+                          <option value="BRL">{getCurrencyInfo('BRL').flag} BRL</option>
+                        </select>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={topAmount}
-                        onChange={(e) => handleTopAmountChange(e.target.value)}
-                        placeholder="0,00"
-                        className="flex-1 text-xl font-bold text-gray-900 bg-transparent border-0 focus:outline-none placeholder-gray-400"
-                      />
-                      <select
-                        value={topCurrency}
-                        onChange={(e) => handleTopCurrencyChange(e.target.value as 'AOA' | 'EUR' | 'BRL')}
-                        className="appearance-none bg-white border border-gray-200 rounded-md px-2 py-1 text-xs font-semibold text-gray-700 focus:outline-none cursor-pointer"
+
+                    {/* Botão de Troca */}
+                    <div className="flex justify-center">
+                      <button
+                        onClick={swapCurrencies}
+                        className="bg-gray-900 hover:bg-gray-800 text-white rounded-full p-2 transition-all transform hover:scale-110 shadow-md"
+                        title="Trocar valores"
                       >
-                        <option value="AOA">{getCurrencyInfo('AOA').flag} AOA</option>
-                        <option value="EUR">{getCurrencyInfo('EUR').flag} EUR</option>
-                        <option value="BRL">{getCurrencyInfo('BRL').flag} BRL</option>
-                      </select>
+                        <ArrowUpDown className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {/* Card Inferior - Você Recebe */}
+                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-3 border border-green-100">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">VOCÊ RECEBE</span>
+                        <span className="text-xs font-semibold text-gray-700">{getCurrencyInfo(bottomCurrency).flag} {bottomCurrency}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={bottomAmount}
+                          onChange={(e) => handleBottomAmountChange(e.target.value)}
+                          placeholder="0,00"
+                          className="flex-1 text-xl font-bold text-gray-900 bg-transparent border-0 focus:outline-none placeholder-gray-400"
+                        />
+                        <select
+                          value={bottomCurrency}
+                          onChange={(e) => handleBottomCurrencyChange(e.target.value as 'AOA' | 'EUR' | 'BRL')}
+                          disabled={topCurrency !== 'AOA'}
+                          className={`appearance-none bg-white border border-gray-200 rounded-md px-2 py-1 text-xs font-semibold text-gray-700 focus:outline-none cursor-pointer ${
+                            topCurrency !== 'AOA' ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                        >
+                          <option value="AOA">{getCurrencyInfo('AOA').flag} AOA</option>
+                          {topCurrency === 'AOA' && (
+                            <>
+                              <option value="EUR">{getCurrencyInfo('EUR').flag} EUR</option>
+                              <option value="BRL">{getCurrencyInfo('BRL').flag} BRL</option>
+                            </>
+                          )}
+                        </select>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Botão de Troca */}
-                  <div className="flex justify-center">
-                    <button
-                      onClick={swapCurrencies}
-                      className="bg-gray-900 hover:bg-gray-800 text-white rounded-full p-2 transition-all transform hover:scale-110 shadow-md"
-                      title="Trocar valores"
-                    >
-                      <ArrowUpDown className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  {/* Card Inferior - Você Recebe */}
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-3 border border-green-100">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">VOCÊ RECEBE</span>
-                      <span className="text-xs font-semibold text-gray-700">{getCurrencyInfo(bottomCurrency).flag} {bottomCurrency}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={bottomAmount}
-                        onChange={(e) => handleBottomAmountChange(e.target.value)}
-                        placeholder="0,00"
-                        className="flex-1 text-xl font-bold text-gray-900 bg-transparent border-0 focus:outline-none placeholder-gray-400"
-                      />
-                      <select
-                        value={bottomCurrency}
-                        onChange={(e) => handleBottomCurrencyChange(e.target.value as 'AOA' | 'EUR' | 'BRL')}
-                        disabled={topCurrency !== 'AOA'}
-                        className={`appearance-none bg-white border border-gray-200 rounded-md px-2 py-1 text-xs font-semibold text-gray-700 focus:outline-none cursor-pointer ${
-                          topCurrency !== 'AOA' ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
-                      >
-                        <option value="AOA">{getCurrencyInfo('AOA').flag} AOA</option>
-                        {topCurrency === 'AOA' && (
-                          <>
-                            <option value="EUR">{getCurrencyInfo('EUR').flag} EUR</option>
-                            <option value="BRL">{getCurrencyInfo('BRL').flag} BRL</option>
-                          </>
-                        )}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Informações da Taxa */}
-                {(topAmount.trim() || bottomAmount.trim()) && (
-                  <div className="mt-4 bg-gray-50 rounded-lg p-3">
-                    {(() => {
-                      const foreignCurrency = topCurrency === 'AOA' ? bottomCurrency : topCurrency;
-                      if (foreignCurrency !== 'AOA') {
-                        // Determinar qual taxa mostrar baseado na direção da conversão
-                        if (topCurrency === 'AOA') {
-                          // AOA → Moeda estrangeira (compra - taxa original)
-                          return (
-                            <div className="flex justify-between items-center text-xs">
-                              <span className="text-gray-600">Taxa de câmbio</span>
-                              <span className="font-semibold text-blue-600">1 {foreignCurrency} = {formatCurrency(exchangeRates[foreignCurrency as 'EUR' | 'BRL'], 'AOA')} AOA</span>
-                            </div>
-                          );
-                        } else {
-                          // Moeda estrangeira → AOA (venda - taxa com desconto)
-                          return (
-                            <div className="flex justify-between items-center text-xs">
-                              <span className="text-gray-600">Taxa de câmbio</span>
-                              <span className="font-semibold text-green-600">1 {foreignCurrency} = {formatCurrency(getAdjustedRate(foreignCurrency as 'EUR' | 'BRL'), 'AOA')} AOA</span>
-                            </div>
-                          );
+                  {/* Informações da Taxa */}
+                  {(topAmount.trim() || bottomAmount.trim()) && (
+                    <div className="mt-4 bg-gray-50 rounded-lg p-3">
+                      {(() => {
+                        const foreignCurrency = topCurrency === 'AOA' ? bottomCurrency : topCurrency;
+                        if (foreignCurrency !== 'AOA') {
+                          // Determinar qual taxa mostrar baseado na direção da conversão
+                          if (topCurrency === 'AOA') {
+                            // AOA → Moeda estrangeira (compra - taxa original)
+                            return (
+                              <div className="flex justify-between items-center text-xs">
+                                <span className="text-gray-600">Taxa de câmbio</span>
+                                <span className="font-semibold text-blue-600">1 {foreignCurrency} = {formatCurrency(exchangeRates[foreignCurrency as 'EUR' | 'BRL'], 'AOA')} AOA</span>
+                              </div>
+                            );
+                          } else {
+                            // Moeda estrangeira → AOA (venda - taxa com desconto)
+                            return (
+                              <div className="flex justify-between items-center text-xs">
+                                <span className="text-gray-600">Taxa de câmbio</span>
+                                <span className="font-semibold text-green-600">1 {foreignCurrency} = {formatCurrency(getAdjustedRate(foreignCurrency as 'EUR' | 'BRL'), 'AOA')} AOA</span>
+                              </div>
+                            );
+                          }
                         }
-                      }
-                      return null;
-                    })()}
-                  </div>
-                )}
-
-                {/* Botão de Continuar */}
-                <button
-                  onClick={handleWhatsAppTransfer}
-                  disabled={!topAmount.trim() || !bottomAmount.trim() || isLoading}
-                  className="w-full mt-4 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 shadow-md"
-                >
-                  {isLoading ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4" />
-                      Continuar
-                    </>
+                        return null;
+                      })()}
+                    </div>
                   )}
-                </button>
 
-                {/* Informações de Segurança */}
-                <div className="mt-3 text-center">
-                  <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
-                    <span>🔒 Seguro</span>
-                    <span>✨ Sem taxas</span>
-                    <span>⚡ Rápido</span>
+                  {/* Botão de Continuar */}
+                  <button
+                    onClick={handleWhatsAppTransfer}
+                    disabled={!topAmount.trim() || !bottomAmount.trim() || isLoading}
+                    className="w-full mt-4 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 shadow-md"
+                  >
+                    {isLoading ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        Continuar
+                      </>
+                    )}
+                  </button>
+
+                  {/* Informações de Segurança */}
+                  <div className="mt-3 text-center">
+                    <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+                      <span>🔒 Seguro</span>
+                      <span>✨ Sem taxas</span>
+                      <span>⚡ Rápido</span>
+                    </div>
                   </div>
                 </div>
               </div>
