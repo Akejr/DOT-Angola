@@ -184,7 +184,70 @@ function FloatingMenuMobile({ selectedId, handleClick }: { selectedId: number, h
     mobileButton.style.zIndex = '9999';
     mobileButton.style.cursor = 'grab';
     mobileButton.style.touchAction = 'none'; // Prevenir comportamentos padrão de touch
-    mobileButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>`;
+    
+    // Efeitos visuais para indicar que é arrastável
+    mobileButton.style.transition = 'all 0.3s ease, transform 0.1s ease';
+    mobileButton.style.animation = 'pulse-drag 2s infinite';
+    
+    // Adicionar CSS personalizado para animações
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes pulse-drag {
+        0%, 100% { 
+          transform: scale(1);
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 0 0 0 0 rgba(1, 4, 45, 0.4);
+        }
+        50% { 
+          transform: scale(1.05);
+          box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3), 0 0 0 8px rgba(1, 4, 45, 0.1);
+        }
+      }
+      
+      @keyframes shake-hint {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-2px); }
+        75% { transform: translateX(2px); }
+      }
+      
+      #mobile-menu-floating-btn:hover {
+        transform: scale(1.1) !important;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3) !important;
+      }
+      
+      #mobile-menu-floating-btn.dragging {
+        transform: scale(1.15) !important;
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4) !important;
+        animation: none !important;
+      }
+      
+      #mobile-menu-floating-btn.hint-shake {
+        animation: shake-hint 0.5s ease-in-out 3 !important;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    mobileButton.innerHTML = `
+      <div style="position: relative; display: flex; align-items: center; justify-content: center;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="4" x2="20" y1="12" y2="12"/>
+          <line x1="4" x2="20" y1="6" y2="6"/>
+          <line x1="4" x2="20" y1="18" y2="18"/>
+        </svg>
+        <div style="position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: #10B981; border-radius: 50%; border: 1px solid white; animation: pulse 1.5s infinite;"></div>
+      </div>
+    `;
+    
+    // Adicionar dica visual após 3 segundos se o usuário não interagir
+    setTimeout(() => {
+      if (mobileButton && document.body.contains(mobileButton)) {
+        mobileButton.classList.add('hint-shake');
+        setTimeout(() => {
+          if (mobileButton && document.body.contains(mobileButton)) {
+            mobileButton.classList.remove('hint-shake');
+          }
+        }, 1500);
+      }
+    }, 3000);
     
     document.body.appendChild(mobileButton);
     
@@ -256,6 +319,9 @@ function FloatingMenuMobile({ selectedId, handleClick }: { selectedId: number, h
       document.removeEventListener('mouseup', handleEnd);
       document.removeEventListener('touchend', handleEnd);
       
+      // Remover classe de arrasto
+      mobileButton.classList.remove('dragging');
+      
       // Se o tempo total foi curto e não houve movimento significativo, considerar como clique
       const timeElapsed = Date.now() - startTime;
       
@@ -290,6 +356,9 @@ function FloatingMenuMobile({ selectedId, handleClick }: { selectedId: number, h
       offsetX = mobileButton.offsetLeft;
       offsetY = mobileButton.offsetTop;
       mobileButton.style.cursor = 'grabbing';
+      
+      // Adicionar classe de arrasto para efeitos visuais
+      mobileButton.classList.add('dragging');
       
       // Adicionar os listeners de movimento e fim
       document.addEventListener('mousemove', handleMove, { passive: false });
