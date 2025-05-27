@@ -340,7 +340,7 @@ Gostaria de realizar esta transferência internacional.`;
           <div className="px-4 sm:px-6 py-8 sm:py-16">
             <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-center">
               {/* Conteúdo da esquerda */}
-              <div className="text-center lg:text-left order-2 lg:order-1">
+              <div className="text-center lg:text-left">
                 <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 rounded-full px-4 py-2 mb-6">
                   <Globe className="w-4 h-4" />
                   <span className="text-sm font-medium">Transferências Globais</span>
@@ -410,7 +410,7 @@ Gostaria de realizar esta transferência internacional.`;
               </div>
               
               {/* Calculadora da direita - RESPONSIVA */}
-              <div id="calculator" className="w-full order-1 lg:order-2">
+              <div id="calculator" className="w-full">
                 <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-xl border border-gray-100 w-full max-w-md mx-auto lg:max-w-sm">
                   {/* Header da Calculadora */}
                   <div className="text-center mb-4">
