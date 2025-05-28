@@ -27,6 +27,7 @@ const Header = () => {
   
   // Estado para controlar a exibição da barra de pesquisa móvel
   const [showMobileSearch, setShowMobileSearch] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   useEffect(() => {
     const loadNotificationCount = async () => {
@@ -64,13 +65,20 @@ const Header = () => {
   useEffect(() => {
     // Função para lidar com cliques fora do container de pesquisa
     const handleClickOutside = (event: MouseEvent) => {
+      // Não fechar se estiver navegando
+      if (isNavigating) return;
+      
       if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
         setShowResults(false);
       }
       
-      // Fechar pesquisa móvel quando clicar fora
+      // Fechar pesquisa móvel quando clicar fora, mas não se estiver clicando em um resultado
       if (mobileSearchRef.current && !mobileSearchRef.current.contains(event.target as Node)) {
-        setShowMobileSearch(false);
+        const target = event.target as HTMLElement;
+        // Verificar se o clique foi em um resultado de pesquisa
+        if (!target.closest('[data-search-result]')) {
+          setShowMobileSearch(false);
+        }
       }
     };
 
@@ -81,7 +89,7 @@ const Header = () => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [isNavigating]);
 
   useEffect(() => {
     if (searchTerm.trim().length > 0) {
@@ -191,6 +199,25 @@ const Header = () => {
         }
       }, 300); // Tempo suficiente para a animação começar
     }
+  };
+
+  // Função específica para lidar com cliques nos resultados mobile
+  const handleMobileResultClick = (result: GiftCard) => {
+    console.log('Clique no resultado mobile:', result.name, result.id, result.slug);
+    
+    setIsNavigating(true);
+    setShowResults(false);
+    setSearchTerm('');
+    setShowMobileSearch(false);
+    
+    // Navegar usando React Router
+    const targetPath = `/gift-card/${result.slug || result.id}`;
+    navigate(targetPath);
+    
+    // Reset do estado de navegação
+    setTimeout(() => {
+      setIsNavigating(false);
+    }, 500);
   };
 
   return (
@@ -352,9 +379,21 @@ const Header = () => {
       </div>
 
       {/* Barra de pesquisa móvel com animação */}
+      {showMobileSearch && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-[9998]" 
+          onClick={(e) => {
+            // Só fechar se não estiver clicando em um resultado
+            const target = e.target as HTMLElement;
+            if (!target.closest('[data-search-result]') && !isNavigating) {
+              setShowMobileSearch(false);
+            }
+          }} 
+        />
+      )}
       <div 
         ref={mobileSearchRef}
-        className={`fixed top-0 left-0 right-0 bg-white p-4 shadow-lg transform transition-all duration-300 ease-in-out z-50 ${
+        className={`fixed top-0 left-0 right-0 bg-white p-4 shadow-lg transform transition-all duration-300 ease-in-out z-[9999] ${
           showMobileSearch 
             ? 'translate-y-0 opacity-100' 
             : '-translate-y-full opacity-0 pointer-events-none'
@@ -398,7 +437,7 @@ const Header = () => {
         
         {/* Resultados da pesquisa móvel */}
         {showResults && searchTerm.trim() && (
-          <div className="mt-3 bg-white rounded-xl shadow-inner border border-gray-100 max-h-[60vh] overflow-y-auto">
+          <div className="mt-3 bg-white rounded-xl shadow-inner border border-gray-100 max-h-[60vh] overflow-y-auto relative z-[10000]">
             {isSearching ? (
               <div className="p-4 text-center">
                 <div className="inline-block w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
@@ -411,15 +450,22 @@ const Header = () => {
                 </div>
                 <div>
                   {searchResults.map(result => (
-                    <Link
+                    <div
                       key={result.id}
-                      to={`/gift-card/${result.slug || result.id}`}
-                      className="block w-full border-b border-gray-100 last:border-0 p-3 hover:bg-gray-50 cursor-pointer transition-colors duration-150 text-left"
-                      onClick={() => {
-                        console.log('Link clicado mobile:', result.name, result.id, result.slug); // Debug
-                        setShowResults(false);
-                        setSearchTerm('');
-                        setShowMobileSearch(false);
+                      data-search-result="true"
+                      className="block w-full border-b border-gray-100 last:border-0 p-3 hover:bg-gray-50 cursor-pointer transition-colors duration-150 text-left relative z-[10001]"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleMobileResultClick(result);
+                      }}
+                      onTouchStart={(e) => {
+                        e.stopPropagation();
+                      }}
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleMobileResultClick(result);
                       }}
                     >
                       <div className="flex items-center gap-3">
@@ -445,7 +491,7 @@ const Header = () => {
                           </div>
                         </div>
                       </div>
-                    </Link>
+                    </div>
                   ))}
                 </div>
               </>
