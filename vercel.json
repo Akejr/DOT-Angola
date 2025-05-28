@@ -107,32 +107,7 @@
     },
     {
       "source": "/products/amazon-prime",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/search?q=tv+express",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/search?q=netflix",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/search?q=free+fire",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/search?q=prime+video",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/search?q=my+family+cinema",
-      "destination": "/",
+      "destination": "/gift-card/prime-video",
       "permanent": true
     },
     {
@@ -168,6 +143,16 @@
     {
       "source": "/search",
       "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/products/transferencia-para-portugal",
+      "destination": "/transferencias",
+      "permanent": true
+    },
+    {
+      "source": "/products/transferencia-em-reais",
+      "destination": "/transferencias",
       "permanent": true
     }
   ],
