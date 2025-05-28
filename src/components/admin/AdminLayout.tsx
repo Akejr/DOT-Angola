@@ -16,7 +16,8 @@ import {
   ChevronRight,
   Percent,
   Package,
-  Receipt
+  Receipt,
+  ShoppingCart
 } from 'lucide-react';
 import { FixSlugsButton } from './FixSlugsButton';
 
@@ -34,6 +35,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { icon: Tag, label: 'Categorias', path: '/admin/categories' },
     { icon: Percent, label: 'Promoções', path: '/admin/promotions' },
     { icon: Receipt, label: 'Vendas', path: '/admin/sales' },
+    { icon: ShoppingCart, label: 'Compras Efetuadas', path: '/admin/orders' },
     { icon: DollarSign, label: 'Taxas de Câmbio', path: '/admin/exchange-rates' },
     { icon: CreditCard, label: 'Visa Virtual', path: '/admin/visa-virtual' },
     { icon: Package, label: 'Pedidos de Importação', path: '/admin/import-requests' },

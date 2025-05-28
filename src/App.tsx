@@ -8,6 +8,8 @@ import { CartProvider } from '@/contexts/CartContext';
 import { SearchProvider } from '@/contexts/SearchContext';
 import Index from "./pages/Index";
 import GiftCardDetailPage from "./pages/GiftCardDetailPage";
+import CheckoutPage from "./pages/CheckoutPage";
+import CheckoutCartPage from "./pages/CheckoutCartPage";
 import VisaVirtualPage from "./pages/VisaVirtualPage";
 import ImportacaoProdutosPage from "./pages/ImportacaoProdutosPage";
 import OutrosServicosPage from "./pages/OutrosServicosPage";
@@ -46,6 +48,8 @@ export default function App() {
                     <Routes>
                       <Route path="/" element={<Index />} />
                       <Route path="/gift-card/:id" element={<GiftCardDetailPage />} />
+                      <Route path="/checkout/:id" element={<CheckoutPage />} />
+                      <Route path="/checkout-cart" element={<CheckoutCartPage />} />
                       <Route path="/visa-virtual" element={<VisaVirtualPage />} />
                       <Route path="/importacao" element={<ImportacaoProdutosPage />} />
                       <Route path="/transferencias" element={<OutrosServicosPage />} />

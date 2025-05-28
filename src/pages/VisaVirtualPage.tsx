@@ -313,8 +313,8 @@ const VisaVirtualPage: React.FC = () => {
         description="Solicite seu cartão Visa Virtual pré-pago para compras online com segurança e praticidade. Ideal para compras internacionais."
         type="product"
       />
-      <div className="min-h-screen bg-gray-100">
-        <div className="max-w-6xl mx-auto bg-white rounded-t-3xl shadow-md overflow-hidden">
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+        <div className="max-w-6xl w-full bg-white rounded-3xl shadow-xl overflow-hidden">
           <Header />
           <Navigation onPageChange={handlePageChange} />
           

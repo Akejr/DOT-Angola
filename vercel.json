@@ -1,4 +1,176 @@
 {
+  "redirects": [
+    {
+      "source": "/collections/gift-cards",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/collections/videogame",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/collections/telefones",
+      "destination": "/importacao",
+      "permanent": true
+    },
+    {
+      "source": "/collections/computadores",
+      "destination": "/importacao",
+      "permanent": true
+    },
+    {
+      "source": "/collections/acessorios",
+      "destination": "/importacao",
+      "permanent": true
+    },
+    {
+      "source": "/collections/softwares",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/collections/subscricoes",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/collections/drones",
+      "destination": "/importacao",
+      "permanent": true
+    },
+    {
+      "source": "/collections/trotinetes",
+      "destination": "/importacao",
+      "permanent": true
+    },
+    {
+      "source": "/collections/imagem-e-video",
+      "destination": "/importacao",
+      "permanent": true
+    },
+    {
+      "source": "/collections/audio-e-som",
+      "destination": "/importacao",
+      "permanent": true
+    },
+    {
+      "source": "/collections/smart",
+      "destination": "/importacao",
+      "permanent": true
+    },
+    {
+      "source": "/collections/redes",
+      "destination": "/importacao",
+      "permanent": true
+    },
+    {
+      "source": "/collections/jogos",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/products/tv-express",
+      "destination": "/gift-card/tvexpress",
+      "permanent": true
+    },
+    {
+      "source": "/products/tvexpress",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/products/my-family-cinema",
+      "destination": "/gift-card/my-family-cinema",
+      "permanent": true
+    },
+    {
+      "source": "/products/netflix",
+      "destination": "/gift-card/netflix",
+      "permanent": true
+    },
+    {
+      "source": "/products/diamantes-free-fire",
+      "destination": "/gift-card/diamantes-free-fire",
+      "permanent": true
+    },
+    {
+      "source": "/products/free-fire",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/products/prime-video",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/products/amazon-prime",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/search?q=tv+express",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/search?q=netflix",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/search?q=free+fire",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/search?q=prime+video",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/search?q=my+family+cinema",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/pages/sobre-nos",
+      "destination": "/sobre-nos",
+      "permanent": true
+    },
+    {
+      "source": "/pages/contato",
+      "destination": "/contato",
+      "permanent": true
+    },
+    {
+      "source": "/pages/termos",
+      "destination": "/termos",
+      "permanent": true
+    },
+    {
+      "source": "/pages/privacidade",
+      "destination": "/privacidade",
+      "permanent": true
+    },
+    {
+      "source": "/cart",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/account",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/search",
+      "destination": "/",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ],

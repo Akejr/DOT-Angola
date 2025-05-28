@@ -168,12 +168,6 @@ const Header = () => {
     return null;
   };
 
-  const handleResultClick = (cardId: string) => {
-    setShowResults(false);
-    setSearchTerm('');
-    navigate(`/gift-card/${cardId}`);
-  };
-
   const formatPrice = (price: number, currency: string) => {
     if (currency === 'KWZ') {
       return `${price.toLocaleString('pt-AO', { maximumFractionDigits: 0 })} Kz`;
@@ -258,10 +252,15 @@ const Header = () => {
                 </div>
                 <div>
                   {searchResults.map(result => (
-                    <div 
-                      key={result.id} 
-                      className="border-b border-gray-100 last:border-0 p-3 hover:bg-gray-50 cursor-pointer transition-colors duration-150"
-                      onClick={() => handleResultClick(result.id)}
+                    <Link
+                      key={result.id}
+                      to={`/gift-card/${result.slug || result.id}`}
+                      className="block border-b border-gray-100 last:border-0 p-3 hover:bg-gray-50 cursor-pointer transition-colors duration-150"
+                      onClick={() => {
+                        console.log('Link clicado desktop:', result.name, result.id, result.slug); // Debug
+                        setShowResults(false);
+                        setSearchTerm('');
+                      }}
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
@@ -286,19 +285,8 @@ const Header = () => {
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   ))}
-                </div>
-                <div className="p-2 text-center border-t border-gray-100">
-                  <button
-                    onClick={() => {
-                      setShowResults(false);
-                      navigate(`/`);
-                    }}
-                    className="text-xs text-blue-600 hover:underline"
-                  >
-                    Ver todos os resultados
-                  </button>
                 </div>
               </>
             ) : (
@@ -423,11 +411,14 @@ const Header = () => {
                 </div>
                 <div>
                   {searchResults.map(result => (
-                    <div 
-                      key={result.id} 
-                      className="border-b border-gray-100 last:border-0 p-3 hover:bg-gray-50 cursor-pointer transition-colors duration-150"
+                    <Link
+                      key={result.id}
+                      to={`/gift-card/${result.slug || result.id}`}
+                      className="block w-full border-b border-gray-100 last:border-0 p-3 hover:bg-gray-50 cursor-pointer transition-colors duration-150 text-left"
                       onClick={() => {
-                        handleResultClick(result.id);
+                        console.log('Link clicado mobile:', result.name, result.id, result.slug); // Debug
+                        setShowResults(false);
+                        setSearchTerm('');
                         setShowMobileSearch(false);
                       }}
                     >
@@ -454,20 +445,8 @@ const Header = () => {
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   ))}
-                </div>
-                <div className="p-2 text-center border-t border-gray-100">
-                  <button
-                    onClick={() => {
-                      setShowResults(false);
-                      setShowMobileSearch(false);
-                      navigate(`/`);
-                    }}
-                    className="text-xs text-blue-600 hover:underline"
-                  >
-                    Ver todos os resultados
-                  </button>
                 </div>
               </>
             ) : (
