@@ -171,5 +171,7 @@
         { "key": "Cache-Control", "value": "s-maxage=1, stale-while-revalidate" }
       ]
     }
-  ]
+  ],
+  "buildCommand": "bash ./vercel.build.sh",
+  "installCommand": "true"
 } 
