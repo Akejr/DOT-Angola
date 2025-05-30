@@ -96,18 +96,23 @@
       "permanent": true
     },
     {
-      "source": "/products/free-fire",
-      "destination": "/",
+      "source": "/products/drone-dji-mavic-3-classic",
+      "destination": "/importacao",
       "permanent": true
     },
     {
       "source": "/products/prime-video",
-      "destination": "/",
+      "destination": "/gift-card/prime-video",
       "permanent": true
     },
     {
       "source": "/products/amazon-prime",
       "destination": "/gift-card/prime-video",
+      "permanent": true
+    },
+    {
+      "source": "/collections/frontpage",
+      "destination": "/",
       "permanent": true
     },
     {

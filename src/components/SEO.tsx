@@ -11,13 +11,21 @@ interface SEOProps {
   type?: string;
 }
 
+const BASE_URL = 'https://dotangola.com';
+const DEFAULT_IMAGE = '/images/DOTLOGO PRINCIPAL.jpg';
+
 export function SEO({ 
   title, 
   description = 'O melhor da tecnologia em Angola. Gift cards internacionais e cartões Visa Virtual com os melhores preços.', 
-  image = '/images/sczs.png',
+  image = DEFAULT_IMAGE,
   type = 'website'
 }: SEOProps) {
+  const location = useLocation();
   const siteTitle = title ? `${title} | DOT ANGOLA` : 'DOT ANGOLA - O melhor da tecnologia em Angola';
+  
+  // Garante que a URL da imagem seja absoluta
+  const absoluteImageUrl = image.startsWith('http') ? image : `${BASE_URL}${image}`;
+  const canonicalUrl = `${BASE_URL}${location.pathname}`;
   
   return (
     <Helmet>
@@ -26,21 +34,24 @@ export function SEO({
       
       {/* Open Graph / Facebook */}
       <meta property="og:type" content={type} />
+      <meta property="og:url" content={canonicalUrl} />
       <meta property="og:title" content={siteTitle} />
       <meta property="og:description" content={description} />
-      <meta property="og:image" content={image} />
+      <meta property="og:image" content={absoluteImageUrl} />
+      <meta property="og:site_name" content="DOT ANGOLA" />
       
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:url" content={canonicalUrl} />
       <meta name="twitter:title" content={siteTitle} />
       <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={image} />
+      <meta name="twitter:image" content={absoluteImageUrl} />
       
       {/* Outros metadados importantes */}
       <meta name="robots" content="index, follow" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <meta name="theme-color" content="#01042D" />
-      <link rel="canonical" href={window.location.href} />
+      <link rel="canonical" href={canonicalUrl} />
       
       {/* Keywords para SEO */}
       <meta name="keywords" content="gift cards Angola, comprar gift cards Angola, gift card Steam Angola, gift card Spotify Angola, gift card Netflix Angola, cartão presente Angola, tecnologia Angola, DOT Angola, gift card PlayStation Angola, gift card Xbox Angola, gift card Google Play Angola, gift card Amazon Angola, gift card Apple Angola" />
