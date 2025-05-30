@@ -11,7 +11,7 @@ interface SEOProps {
   type?: string;
 }
 
-const BASE_URL = 'https://dotangola.com';
+const BASE_URL = 'https://dotgiftcardhaven.vercel.app';
 const DEFAULT_IMAGE = `${BASE_URL}/images/DOTLOGO PRINCIPAL.jpg`;
 
 export function SEO({ 
@@ -37,7 +37,17 @@ export function SEO({
           const card = await getGiftCardById(id);
           setGiftCard(card);
           if (card) {
-            const cardImage = card.image_url ? (card.image_url.startsWith('http') ? card.image_url : `${BASE_URL}${card.image_url}`) : DEFAULT_IMAGE;
+            let cardImage = DEFAULT_IMAGE;
+            if (card.image_url) {
+              if (card.image_url.startsWith('http')) {
+                cardImage = card.image_url;
+              } else if (card.image_url.startsWith('/')) {
+                cardImage = `${BASE_URL}${card.image_url}`;
+              } else {
+                cardImage = `${BASE_URL}/${card.image_url}`;
+              }
+            }
+
             setPageMetadata({
               title: `${card.name} | DOT ANGOLA`,
               description: card.description || `Compre ${card.name} com o melhor preço em Angola.`,
@@ -51,13 +61,15 @@ export function SEO({
       }
     };
 
-    if (!title && !description && !image) {
-      loadGiftCard();
-    }
-  }, [id, location.pathname, title, description, image]);
+    loadGiftCard();
+  }, [id, location.pathname]);
 
   const siteTitle = pageMetadata.title || 'DOT ANGOLA - O melhor da tecnologia em Angola';
-  const absoluteImageUrl = pageMetadata.image?.startsWith('http') ? pageMetadata.image : `${BASE_URL}${pageMetadata.image}`;
+  const absoluteImageUrl = pageMetadata.image?.startsWith('http') 
+    ? pageMetadata.image 
+    : pageMetadata.image?.startsWith('/') 
+      ? `${BASE_URL}${pageMetadata.image}`
+      : `${BASE_URL}/${pageMetadata.image}`;
   const canonicalUrl = `${BASE_URL}${location.pathname}`;
 
   return (
@@ -71,6 +83,8 @@ export function SEO({
       <meta property="og:title" content={siteTitle} />
       <meta property="og:description" content={pageMetadata.description} />
       <meta property="og:image" content={absoluteImageUrl} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
       <meta property="og:site_name" content="DOT ANGOLA" />
       
       {/* Twitter */}
