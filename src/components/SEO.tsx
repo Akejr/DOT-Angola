@@ -12,7 +12,7 @@ interface SEOProps {
 }
 
 const BASE_URL = 'https://dotangola.com';
-const DEFAULT_IMAGE = '/images/DOTLOGO PRINCIPAL.jpg';
+const DEFAULT_IMAGE = `${BASE_URL}/images/DOTLOGO PRINCIPAL.jpg`;
 
 export function SEO({ 
   title, 
@@ -21,22 +21,55 @@ export function SEO({
   type = 'website'
 }: SEOProps) {
   const location = useLocation();
-  const siteTitle = title ? `${title} | DOT ANGOLA` : 'DOT ANGOLA - O melhor da tecnologia em Angola';
-  
-  // Garante que a URL da imagem seja absoluta
-  const absoluteImageUrl = image.startsWith('http') ? image : `${BASE_URL}${image}`;
+  const { id } = useParams<{ id: string }>();
+  const [giftCard, setGiftCard] = useState<GiftCard | null>(null);
+  const [pageMetadata, setPageMetadata] = useState<SEOProps>({
+    title,
+    description,
+    image,
+    type
+  });
+
+  useEffect(() => {
+    const loadGiftCard = async () => {
+      if (location.pathname.startsWith('/gift-card/') && id) {
+        try {
+          const card = await getGiftCardById(id);
+          setGiftCard(card);
+          if (card) {
+            const cardImage = card.image_url ? (card.image_url.startsWith('http') ? card.image_url : `${BASE_URL}${card.image_url}`) : DEFAULT_IMAGE;
+            setPageMetadata({
+              title: `${card.name} | DOT ANGOLA`,
+              description: card.description || `Compre ${card.name} com o melhor preço em Angola.`,
+              image: cardImage,
+              type: 'product'
+            });
+          }
+        } catch (error) {
+          console.error('Erro ao carregar gift card para SEO:', error);
+        }
+      }
+    };
+
+    if (!title && !description && !image) {
+      loadGiftCard();
+    }
+  }, [id, location.pathname, title, description, image]);
+
+  const siteTitle = pageMetadata.title || 'DOT ANGOLA - O melhor da tecnologia em Angola';
+  const absoluteImageUrl = pageMetadata.image?.startsWith('http') ? pageMetadata.image : `${BASE_URL}${pageMetadata.image}`;
   const canonicalUrl = `${BASE_URL}${location.pathname}`;
-  
+
   return (
     <Helmet>
       <title>{siteTitle}</title>
-      <meta name="description" content={description} />
+      <meta name="description" content={pageMetadata.description} />
       
       {/* Open Graph / Facebook */}
-      <meta property="og:type" content={type} />
+      <meta property="og:type" content={pageMetadata.type} />
       <meta property="og:url" content={canonicalUrl} />
       <meta property="og:title" content={siteTitle} />
-      <meta property="og:description" content={description} />
+      <meta property="og:description" content={pageMetadata.description} />
       <meta property="og:image" content={absoluteImageUrl} />
       <meta property="og:site_name" content="DOT ANGOLA" />
       
@@ -44,7 +77,7 @@ export function SEO({
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:url" content={canonicalUrl} />
       <meta name="twitter:title" content={siteTitle} />
-      <meta name="twitter:description" content={description} />
+      <meta name="twitter:description" content={pageMetadata.description} />
       <meta name="twitter:image" content={absoluteImageUrl} />
       
       {/* Outros metadados importantes */}
@@ -59,124 +92,4 @@ export function SEO({
   );
 }
 
-const SEOComponent = () => {
-  const location = useLocation();
-  const { id } = useParams<{ id: string }>();
-  const [giftCard, setGiftCard] = useState<GiftCard | null>(null);
-  const path = location.pathname;
-
-  const defaultTitle = 'DOT ANGOLA - O melhor da tecnologia em Angola';
-  const defaultDescription = 'DOT ANGOLA oferece gift cards internacionais, cartões presente e cartões virtuais VISA com os melhores preços. A sua loja de tecnologia em Angola.';
-  const defaultImage = '/og-image.jpg';
-
-  useEffect(() => {
-    const loadGiftCard = async () => {
-      if (path.startsWith('/gift-card/') && id) {
-        try {
-          const card = await getGiftCardById(id);
-          setGiftCard(card);
-        } catch (error) {
-          console.error('Erro ao carregar gift card para SEO:', error);
-        }
-      }
-    };
-
-    loadGiftCard();
-  }, [path, id]);
-
-  const getPageMetadata = () => {
-    // Se estiver na página de detalhes do gift card e tiver os dados carregados
-    if (path.startsWith('/gift-card/') && giftCard) {
-      const cardImage = giftCard.image_url || defaultImage;
-      return {
-        title: `${giftCard.name} | DOT ANGOLA`,
-        description: `${giftCard.description || `Compre ${giftCard.name} com o melhor preço em Angola.`}`,
-        image: cardImage,
-        url: `https://dotangola.com/gift-card/${giftCard.slug || giftCard.id}`
-      };
-    }
-
-    switch (path) {
-      case '/':
-        return {
-          title: defaultTitle,
-          description: defaultDescription,
-          image: defaultImage,
-          url: 'https://dotangola.com'
-        };
-      case '/visa-virtual':
-        return {
-          title: 'Cartão Virtual VISA | DOT ANGOLA',
-          description: 'Solicite seu cartão virtual VISA internacional na DOT ANGOLA. Aceito em milhares de lojas online em todo o mundo.',
-          image: defaultImage,
-          url: 'https://dotangola.com/visa-virtual'
-        };
-      case '/sobre-nos':
-        return {
-          title: 'Sobre Nós | DOT ANGOLA',
-          description: 'Conheça a DOT ANGOLA, sua parceira confiável para tecnologia, cartões presente e cartões virtuais em Angola.',
-          image: defaultImage,
-          url: 'https://dotangola.com/sobre-nos'
-        };
-      case '/contato':
-        return {
-          title: 'Contato | DOT ANGOLA',
-          description: 'Entre em contato com a DOT ANGOLA. Estamos aqui para ajudar com suas dúvidas sobre tecnologia, cartões presente e cartões virtuais.',
-          image: defaultImage,
-          url: 'https://dotangola.com/contato'
-        };
-      case '/privacidade':
-        return {
-          title: 'Política de Privacidade | DOT ANGOLA',
-          description: 'Conheça nossa política de privacidade e como protegemos seus dados pessoais na DOT ANGOLA.',
-          image: defaultImage,
-          url: 'https://dotangola.com/privacidade'
-        };
-      case '/termos':
-        return {
-          title: 'Termos e Condições | DOT ANGOLA',
-          description: 'Leia nossos termos e condições de uso dos serviços de tecnologia, cartões presente e cartões virtuais na DOT ANGOLA.',
-          image: defaultImage,
-          url: 'https://dotangola.com/termos'
-        };
-      default:
-        return {
-          title: defaultTitle,
-          description: defaultDescription,
-          image: defaultImage,
-          url: `https://dotangola.com${path}`
-        };
-    }
-  };
-
-  const { title, description, image, url } = getPageMetadata();
-
-  return (
-    <Helmet>
-      <title>{title}</title>
-      <meta name="description" content={description} />
-      
-      {/* Open Graph / Facebook */}
-      <meta property="og:type" content="website" />
-      <meta property="og:url" content={url} />
-      <meta property="og:title" content={title} />
-      <meta property="og:description" content={description} />
-      <meta property="og:image" content={image} />
-
-      {/* Twitter */}
-      <meta property="twitter:card" content="summary_large_image" />
-      <meta property="twitter:url" content={url} />
-      <meta property="twitter:title" content={title} />
-      <meta property="twitter:description" content={description} />
-      <meta property="twitter:image" content={image} />
-
-      {/* Keywords para SEO */}
-      <meta name="keywords" content="gift cards Angola, comprar gift cards Angola, gift card Steam Angola, gift card Spotify Angola, gift card Netflix Angola, cartão presente Angola, tecnologia Angola, DOT Angola, gift card PlayStation Angola, gift card Xbox Angola, gift card Google Play Angola, gift card Amazon Angola, gift card Apple Angola" />
-
-      {/* Canonical URL */}
-      <link rel="canonical" href={url} />
-    </Helmet>
-  );
-};
-
-export default SEOComponent; 
+export default SEO; 

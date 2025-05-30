@@ -381,7 +381,7 @@ export default function GiftCardDetailPage() {
 
   return (
     <>
-      <SEO {...seoProps} />
+      <SEO />
       <MainLayout onPageChange={handlePageChange}>
         <div className="container p-6">
           <Link to="/" className="inline-flex items-center text-gray-600 hover:text-blue-600 mb-6 transition">
