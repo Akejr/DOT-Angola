@@ -11,12 +11,13 @@ interface SEOProps {
   type?: string;
 }
 
-const BASE_URL = 'https://dotgiftcardhaven.vercel.app';
+const BASE_URL = 'https://dot-angola.vercel.app';
 const DEFAULT_IMAGE = `${BASE_URL}/images/DOTLOGO PRINCIPAL.jpg`;
+const DEFAULT_DESCRIPTION = 'O melhor da tecnologia em Angola. Gift cards internacionais e cartões Visa Virtual com os melhores preços.';
 
 export function SEO({ 
   title, 
-  description = 'O melhor da tecnologia em Angola. Gift cards internacionais e cartões Visa Virtual com os melhores preços.', 
+  description = DEFAULT_DESCRIPTION, 
   image = DEFAULT_IMAGE,
   type = 'website'
 }: SEOProps) {
@@ -86,6 +87,7 @@ export function SEO({
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
       <meta property="og:site_name" content="DOT ANGOLA" />
+      <meta property="og:locale" content="pt_AO" />
       
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
@@ -93,6 +95,7 @@ export function SEO({
       <meta name="twitter:title" content={siteTitle} />
       <meta name="twitter:description" content={pageMetadata.description} />
       <meta name="twitter:image" content={absoluteImageUrl} />
+      <meta name="twitter:image:alt" content={siteTitle} />
       
       {/* Outros metadados importantes */}
       <meta name="robots" content="index, follow" />

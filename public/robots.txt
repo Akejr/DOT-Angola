@@ -26,7 +26,7 @@ User-agent: LinkedInBot
 Allow: /
 
 # Caminho para o sitemap
-Sitemap: https://dotangola.com/sitemap.xml
+Sitemap: https://dot-angola.vercel.app/sitemap.xml
 
 # Host definido para evitar conteúdo duplicado
-Host: https://dotangola.com
+Host: https://dot-angola.vercel.app
