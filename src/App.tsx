@@ -25,6 +25,7 @@ import AdminRoutes from './routes/admin';
 import ProtectedRoute from './components/admin/ProtectedRoute';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Analytics } from '@/components/Analytics';
+import { GoogleAnalytics } from '@/components/GoogleAnalytics';
 import { HelmetProvider } from 'react-helmet-async';
 import SEO from '@/components/SEO';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -45,6 +46,7 @@ export default function App() {
                 <CartProvider>
                   <SearchProvider>
                     <Analytics />
+                    <GoogleAnalytics />
                     <Routes>
                       <Route path="/" element={<Index />} />
                       <Route path="/gift-card/:id" element={<GiftCardDetailPage />} />
