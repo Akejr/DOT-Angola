@@ -22,6 +22,9 @@ function isVibrationSupported() {
   return 'vibrate' in navigator;
 }
 
+// Configuração padrão de notificação
+let dailyNotificationTime = '20:20';
+
 // Instalar service worker
 self.addEventListener('install', (event) => {
   console.log('🔧 Service Worker: Installing...');
@@ -47,13 +50,15 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME && cacheName !== STATIC_CACHE_NAME) {
+          if (cacheName !== CACHE_NAME) {
             console.log('🗑️ Service Worker: Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
     }).then(() => {
+      // Agendar primeira notificação diária
+      scheduleNextDailyNotification();
       console.log('✅ Service Worker: Activation complete');
       return self.clients.claim();
     })
@@ -205,38 +210,96 @@ self.addEventListener('sync', (event) => {
   }
 });
 
+// Listener para atualizar configurações
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'UPDATE_NOTIFICATION_SCHEDULE') {
+    dailyNotificationTime = event.data.time;
+    console.log('Service Worker: Horário da notificação atualizado para:', dailyNotificationTime);
+    scheduleNextDailyNotification();
+  }
+});
+
+// Função para agendar próxima notificação diária
+function scheduleNextDailyNotification() {
+  const now = new Date();
+  const [hours, minutes] = dailyNotificationTime.split(':').map(Number);
+  
+  let scheduledTime = new Date();
+  scheduledTime.setHours(hours, minutes, 0, 0);
+  
+  // Se já passou da hora hoje, agendar para amanhã
+  if (scheduledTime <= now) {
+    scheduledTime.setDate(scheduledTime.getDate() + 1);
+  }
+  
+  const timeUntilNotification = scheduledTime.getTime() - Date.now();
+  
+  // Limpar timeout anterior se existir
+  if (self.dailyNotificationTimeout) {
+    clearTimeout(self.dailyNotificationTimeout);
+  }
+  
+  // Agendar nova notificação
+  self.dailyNotificationTimeout = setTimeout(async () => {
+    await sendDailyReport();
+    // Reagendar para o próximo dia
+    scheduleNextDailyNotification();
+  }, timeUntilNotification);
+  
+  console.log(`Próxima notificação diária agendada para ${scheduledTime.toLocaleString()}`);
+}
+
 // Função para enviar relatório diário
 async function sendDailyReport() {
   try {
-    console.log('📊 Service Worker: Generating daily report');
+    // Buscar dados do relatório diário
+    const response = await fetch('/api/daily-stats', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        function: 'get_daily_order_stats',
+        args: []
+      })
+    });
     
-    // Aqui você pode fazer a lógica para buscar dados de vendas do dia
-    const response = await fetch('/api/admin/daily-stats');
     const data = await response.json();
+    const stats = data.result || {};
     
-    if (!isNotificationSupported()) {
-      console.warn('Service Worker: Não é possível mostrar notificação de relatório');
-      return;
+    // Usar mensagem customizada do banco de dados
+    const message = stats.message || `Você teve o lucro líquido diário de ${stats.dailyProfit || 0} AOA`;
+    
+    await self.registration.showNotification('📊 Relatório Diário', {
+      body: message,
+      icon: '/icon-192x192.png',
+      badge: '/icon-72x72.png',
+      tag: 'daily-report',
+      requireInteraction: true,
+      actions: [
+        {
+          action: 'open',
+          title: 'Abrir Admin'
+        },
+        {
+          action: 'close',
+          title: 'Fechar'
+        }
+      ],
+      data: {
+        url: '/admin',
+        type: 'daily-report',
+        stats: stats
+      }
+    });
+    
+    // Vibração personalizada para relatório diário
+    if ('vibrate' in navigator) {
+      navigator.vibrate([200, 100, 200, 100, 400]);
     }
     
-    const notification = {
-      title: '📊 Relatório Diário - Gift Card Haven',
-      body: `Lucro hoje: ${data.dailyProfit || 0} AOA | Vendas: ${data.dailySales || 0}`,
-      icon: '/pwa-icons/icon-192x192.png',
-      badge: '/pwa-icons/icon-72x72.png',
-      tag: 'daily-report',
-      data: {
-        url: '/admin/vendas',
-        trackClose: true,
-        id: 'daily-report-' + new Date().toISOString().split('T')[0]
-      },
-      requireInteraction: true
-    };
-    
-    await self.registration.showNotification(notification.title, notification);
-    
   } catch (error) {
-    console.error('Erro ao gerar relatório diário:', error);
+    console.error('Erro ao enviar relatório diário:', error);
   }
 }
 

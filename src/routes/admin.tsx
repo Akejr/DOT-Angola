@@ -12,6 +12,7 @@ import ImportRequestsPage from '@/pages/admin/ImportRequestsPage';
 import SalesManager from '@/components/admin/SalesManager';
 import InvoicePdfPage from '@/pages/admin/InvoicePdfPage';
 import OrdersPage from '@/pages/admin/orders';
+import PWASettings from '@/components/admin/PWASettings';
 
 export default function AdminRoutes() {
   return (
@@ -28,6 +29,7 @@ export default function AdminRoutes() {
       <Route path="import-requests" element={<ImportRequestsPage />} />
       <Route path="invoice-pdf" element={<InvoicePdfPage />} />
       <Route path="orders" element={<OrdersPage />} />
+      <Route path="pwa" element={<PWASettings />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

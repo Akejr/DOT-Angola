@@ -102,6 +102,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { icon: Package, label: 'Pedidos de Importação', path: '/admin/import-requests' },
     { icon: Bell, label: 'Notificações', path: '/admin/notifications' },
     { icon: Settings, label: 'Configurações', path: '/admin/settings' },
+    { icon: Smartphone, label: 'PWA', path: '/admin/pwa' },
   ];
   
   const isActive = (path: string) => {

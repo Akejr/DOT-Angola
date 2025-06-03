@@ -420,29 +420,29 @@ export class SalesNotificationManager {
   // Notificação manual para teste
   async testSaleNotification() {
     try {
-      // Criar uma venda de teste que vai trigger o sistema
+      // Criar uma compra de teste que vai trigger o sistema
       const { error } = await supabase
-        .rpc('test_new_sale_notification');
+        .rpc('test_new_order_notification');
 
       if (error) {
-        console.error('Erro ao criar venda de teste:', error);
+        console.error('Erro ao criar compra de teste:', error);
         // Fallback para notificação local
         await this.pwaManager.showLocalNotification({
-          title: '🧪 Teste - Nova Venda',
+          title: '🧪 Teste - Nova Compra',
           body: 'João Silva (TESTE) - 15.000 AOA',
-          tag: 'test-sale',
+          tag: 'test-order',
           requireInteraction: true
         });
       } else {
-        console.log('✅ Venda de teste criada - notificação será enviada automaticamente');
+        console.log('✅ Compra de teste criada - notificação será enviada automaticamente');
       }
     } catch (error) {
       console.error('Erro no teste de notificação:', error);
       // Fallback
       await this.pwaManager.showLocalNotification({
-        title: '🧪 Teste - Nova Venda',
+        title: '🧪 Teste - Nova Compra',
         body: 'João Silva (TESTE) - 15.000 AOA',
-        tag: 'test-sale',
+        tag: 'test-order',
         requireInteraction: true
       });
     }
@@ -451,6 +451,11 @@ export class SalesNotificationManager {
   // Configurar permissões
   async setupNotifications() {
     return await this.pwaManager.requestNotificationPermission();
+  }
+
+  // Método público para acessar PWA Manager
+  getPWAManager() {
+    return this.pwaManager;
   }
 
   // Cleanup ao destruir

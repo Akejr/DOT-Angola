@@ -19,28 +19,31 @@ CREATE INDEX IF NOT EXISTS idx_pending_notifications_created_at ON pending_notif
 -- Habilitar RLS
 ALTER TABLE pending_notifications ENABLE ROW LEVEL SECURITY;
 
--- Políticas de segurança
+-- Remover política existente e recriar
+DROP POLICY IF EXISTS "Allow all operations on pending_notifications" ON pending_notifications;
 CREATE POLICY "Allow all operations on pending_notifications" 
 ON pending_notifications FOR ALL 
 USING (true) 
 WITH CHECK (true);
 
--- Função para criar notificação de nova venda
-CREATE OR REPLACE FUNCTION notify_new_sale()
+-- Função para criar notificação de nova compra (orders)
+CREATE OR REPLACE FUNCTION notify_new_order()
 RETURNS TRIGGER AS $$
 BEGIN
   -- Inserir notificação pendente para todos os dispositivos
   INSERT INTO pending_notifications (type, title, body, data)
   VALUES (
-    'new_sale',
-    '💰 Nova Venda Registrada!',
+    'new_order',
+    '💰 Nova Compra Registrada!',
     NEW.customer_name || ' - ' || 
     TO_CHAR(NEW.total, 'FM999G999G990') || ' AOA',
     json_build_object(
-      'sale_id', NEW.id,
+      'order_id', NEW.id,
       'customer_name', NEW.customer_name,
+      'customer_email', NEW.customer_email,
       'total', NEW.total,
-      'url', '/admin/sales'
+      'status', NEW.status,
+      'url', '/admin/orders'
     )
   );
   
@@ -48,12 +51,16 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger na tabela sales para notificar novas vendas
-DROP TRIGGER IF EXISTS trigger_notify_new_sale ON sales;
-CREATE TRIGGER trigger_notify_new_sale
-  AFTER INSERT ON sales
+-- Trigger na tabela orders para notificar novas compras
+DROP TRIGGER IF EXISTS trigger_notify_new_order ON orders;
+CREATE TRIGGER trigger_notify_new_order
+  AFTER INSERT ON orders
   FOR EACH ROW
-  EXECUTE FUNCTION notify_new_sale();
+  EXECUTE FUNCTION notify_new_order();
+
+-- Remover trigger antigo da tabela sales (se existir)
+DROP TRIGGER IF EXISTS trigger_notify_new_sale ON sales;
+DROP FUNCTION IF EXISTS notify_new_sale();
 
 -- Função para marcar notificação como enviada
 CREATE OR REPLACE FUNCTION mark_notification_sent(notification_id UUID)
@@ -101,28 +108,57 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Função para simular uma venda (para teste)
-CREATE OR REPLACE FUNCTION test_new_sale_notification()
+-- Função para simular uma compra (para teste)
+CREATE OR REPLACE FUNCTION test_new_order_notification()
 RETURNS void AS $$
 BEGIN
-  INSERT INTO sales (
+  INSERT INTO orders (
     customer_name, 
     customer_email, 
     customer_phone, 
     total, 
-    gift_card_id, 
-    quantity,
-    profit
+    status,
+    items
   ) VALUES (
     'João Silva (TESTE)',
     'joao.teste@email.com',
     '+244 999 123 456',
     15000.00,
-    (SELECT id FROM gift_cards LIMIT 1),
-    1,
-    2500.00
+    'completed',
+    '[{"name": "Gift Card Steam", "quantity": 1, "price": 15000}]'::jsonb
   );
 END;
 $$ LANGUAGE plpgsql;
 
-SELECT 'Cross-device notifications system created successfully!' as status; 
+-- Função para obter estatísticas diárias de compras (para relatório às 20:20)
+CREATE OR REPLACE FUNCTION get_daily_order_stats(target_date DATE DEFAULT CURRENT_DATE)
+RETURNS JSON AS $$
+DECLARE
+  daily_orders INTEGER;
+  daily_revenue DECIMAL(12,2);
+  daily_profit DECIMAL(12,2);
+BEGIN
+  -- Contar compras do dia
+  SELECT 
+    COUNT(*),
+    COALESCE(SUM(total), 0),
+    COALESCE(SUM(total * 0.15), 0) -- Assumindo 15% de lucro médio
+  INTO daily_orders, daily_revenue, daily_profit
+  FROM orders 
+  WHERE DATE(created_at) = target_date
+    AND status = 'completed';
+
+  RETURN json_build_object(
+    'date', target_date,
+    'dailyOrders', daily_orders,
+    'dailyRevenue', daily_revenue,
+    'dailyProfit', daily_profit
+  );
+END;
+$$ LANGUAGE plpgsql;
+
+-- Remover função antiga de sales (se existir)
+DROP FUNCTION IF EXISTS test_new_sale_notification();
+DROP FUNCTION IF EXISTS get_daily_sales_stats(DATE);
+
+SELECT 'Cross-device notifications system updated for ORDERS table - conflicts resolved!' as status; 

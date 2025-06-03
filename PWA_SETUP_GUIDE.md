@@ -68,7 +68,7 @@ Este guia explica como usar a PWA (Progressive Web App) do admin com notificaç�
 4. Você verá uma **notificação de teste** confirmando (se suportado)
 
 ### **Notificações Automáticas:**
-- 💰 **Nova Venda**: Sempre que alguém comprar algo (funciona entre dispositivos)
+- 💰 **Nova Compra**: Sempre que alguém comprar algo no site (tabela orders)
 - 📊 **Relatório Diário**: Todos os dias às **20:20** com lucro do dia
 
 ---
@@ -105,7 +105,7 @@ Este guia explica como usar a PWA (Progressive Web App) do admin com notificaç�
 
 ### **Teste Cross-Device (Novo!):**
 1. No admin (PC/mobile), clique **"🧪 Teste Cross-Device"**
-2. Uma venda de teste será criada
+2. Uma compra de teste será criada na tabela `orders`
 3. **TODOS os dispositivos** conectados receberão a notificação
 4. Funciona mesmo se o dispositivo estiver em outra aba/app
 
@@ -114,7 +114,7 @@ Este guia explica como usar a PWA (Progressive Web App) do admin com notificaç�
 2. **Se suportado**: Notificação push nativa
 3. **Se não suportado**: Alert com a mensagem
 
-### **Teste de Venda Real:**
+### **Teste de Compra Real:**
 1. Faça uma compra real no site
 2. **Todos os admins conectados** recebem notificação
 3. Funciona entre PC ↔ Mobile automaticamente
@@ -132,8 +132,8 @@ Este guia explica como usar a PWA (Progressive Web App) do admin com notificaç�
 **Solução**:
 1. **Execute** `supabase/migrations/cross_device_notifications.sql`
 2. **Verifique** tabela `pending_notifications` no Supabase
-3. **Teste** função: `SELECT test_new_sale_notification();`
-4. **Confirme** trigger na tabela `sales`
+3. **Teste** função: `SELECT test_new_order_notification();`
+4. **Confirme** trigger na tabela `orders`
 
 ### **❌ Dashboard não responsivo no mobile:**
 **Causa**: Cache do navegador ou PWA não atualizada
@@ -167,11 +167,18 @@ SELECT * FROM pending_notifications WHERE status = 'pending';
 -- Ver histórico de notificações
 SELECT * FROM pending_notifications ORDER BY created_at DESC LIMIT 10;
 
--- Teste manual de notificação
-SELECT test_new_sale_notification();
+-- Teste manual de notificação (ORDERS)
+SELECT test_new_order_notification();
+
+-- Ver estatísticas de compras diárias
+SELECT get_daily_order_stats();
 
 -- Limpar notificações antigas
 SELECT cleanup_old_notifications();
+
+-- Verificar se trigger existe na tabela orders
+SELECT * FROM information_schema.triggers 
+WHERE trigger_name = 'trigger_notify_new_order';
 ```
 
 ### **Configurar Polling de Notificações:**
