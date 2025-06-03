@@ -1,6 +1,6 @@
 // Service Worker para Gift Card Haven Admin PWA
-const CACHE_NAME = 'gch-admin-v1.0.0';
-const STATIC_CACHE_NAME = 'gch-admin-static-v1.0.0';
+const CACHE_NAME = 'gch-admin-v1.0.1';
+const STATIC_CACHE_NAME = 'gch-admin-static-v1.0.1';
 
 // URLs para cache
 const urlsToCache = [
@@ -11,6 +11,16 @@ const urlsToCache = [
   '/pwa-icons/icon-192x192.png',
   '/pwa-icons/icon-512x512.png'
 ];
+
+// Verificar se notificações são suportadas
+function isNotificationSupported() {
+  return 'Notification' in self && typeof Notification !== 'undefined';
+}
+
+// Verificar se vibração é suportada
+function isVibrationSupported() {
+  return 'vibrate' in navigator;
+}
 
 // Instalar service worker
 self.addEventListener('install', (event) => {
@@ -90,6 +100,11 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('push', (event) => {
   console.log('📬 Service Worker: Push received');
   
+  if (!isNotificationSupported()) {
+    console.warn('Service Worker: Notificações não suportadas');
+    return;
+  }
+  
   let data = {};
   
   try {
@@ -122,7 +137,7 @@ self.addEventListener('push', (event) => {
     ],
     tag: data.tag || 'admin-notification',
     requireInteraction: data.requireInteraction || false,
-    vibrate: [200, 100, 200],
+    vibrate: isVibrationSupported() ? [200, 100, 200] : undefined,
     sound: '/notification-sound.mp3'
   };
 
@@ -199,6 +214,11 @@ async function sendDailyReport() {
     const response = await fetch('/api/admin/daily-stats');
     const data = await response.json();
     
+    if (!isNotificationSupported()) {
+      console.warn('Service Worker: Não é possível mostrar notificação de relatório');
+      return;
+    }
+    
     const notification = {
       title: '📊 Relatório Diário - Gift Card Haven',
       body: `Lucro hoje: ${data.dailyProfit || 0} AOA | Vendas: ${data.dailySales || 0}`,
@@ -220,10 +240,15 @@ async function sendDailyReport() {
   }
 }
 
-// Configurar notificação diária agendada (simulação)
+// Listener para mensagens do app principal
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SCHEDULE_DAILY_NOTIFICATION') {
     console.log('⏰ Service Worker: Scheduling daily notification');
+    
+    if (!isNotificationSupported()) {
+      console.warn('Service Worker: Notificações diárias não suportadas');
+      return;
+    }
     
     // Em um cenário real, você usaria uma função serverless ou cron job
     // Aqui vamos simular com setTimeout
@@ -247,6 +272,24 @@ self.addEventListener('message', (event) => {
     }, timeUntilNotification);
     
     console.log(`⏰ Daily notification scheduled for: ${targetTime.toLocaleString('pt-BR')}`);
+  }
+  
+  // Fallback notification para navegadores sem suporte nativo
+  if (event.data?.type === 'SHOW_FALLBACK_NOTIFICATION') {
+    console.log('📱 Service Worker: Showing fallback notification');
+    const data = event.data.data;
+    
+    // Tentar mostrar via service worker registration
+    if (isNotificationSupported() && self.registration) {
+      self.registration.showNotification(data.title, {
+        body: data.body,
+        icon: '/pwa-icons/icon-192x192.png',
+        badge: '/pwa-icons/icon-72x72.png',
+        tag: data.tag || 'fallback-notification'
+      }).catch((error) => {
+        console.error('Erro ao mostrar notificação fallback:', error);
+      });
+    }
   }
 });
 

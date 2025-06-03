@@ -2,7 +2,7 @@
 import { supabase } from '@/lib/supabase';
 
 interface NotificationPermissionResult {
-  permission: NotificationPermission;
+  permission: NotificationPermission | 'unsupported';
   subscription?: PushSubscription;
   error?: string;
 }
@@ -25,29 +25,53 @@ class PWAManager {
     this.init();
   }
 
+  // Verificar se notificações são suportadas
+  private isNotificationSupported(): boolean {
+    return typeof window !== 'undefined' && 
+           'Notification' in window && 
+           typeof Notification !== 'undefined';
+  }
+
+  // Verificar se service worker é suportado
+  private isServiceWorkerSupported(): boolean {
+    return typeof window !== 'undefined' && 
+           'serviceWorker' in navigator;
+  }
+
+  // Verificar se push manager é suportado
+  private isPushManagerSupported(): boolean {
+    return typeof window !== 'undefined' && 
+           'PushManager' in window;
+  }
+
   // Inicializar PWA
   async init() {
-    if ('serviceWorker' in navigator) {
-      try {
-        console.log('🚀 PWA: Registering service worker...');
-        
-        this.swRegistration = await navigator.serviceWorker.register('/sw.js', {
-          scope: '/admin'
-        });
+    if (!this.isServiceWorkerSupported()) {
+      console.warn('PWA: Service Worker não suportado neste navegador');
+      return;
+    }
 
-        console.log('✅ PWA: Service worker registered successfully');
+    try {
+      console.log('🚀 PWA: Registering service worker...');
+      
+      this.swRegistration = await navigator.serviceWorker.register('/sw.js', {
+        scope: '/admin'
+      });
 
-        // Configurar notificação diária
+      console.log('✅ PWA: Service worker registered successfully');
+
+      // Configurar notificação diária apenas se suportado
+      if (this.isNotificationSupported()) {
         this.scheduleDailyNotification();
-
-        // Listener para updates do service worker
-        this.swRegistration.addEventListener('updatefound', () => {
-          console.log('🔄 PWA: Service worker update found');
-        });
-
-      } catch (error) {
-        console.error('❌ PWA: Service worker registration failed:', error);
       }
+
+      // Listener para updates do service worker
+      this.swRegistration.addEventListener('updatefound', () => {
+        console.log('🔄 PWA: Service worker update found');
+      });
+
+    } catch (error) {
+      console.error('❌ PWA: Service worker registration failed:', error);
     }
   }
 
@@ -55,8 +79,11 @@ class PWAManager {
   async requestNotificationPermission(): Promise<NotificationPermissionResult> {
     try {
       // Verificar se o navegador suporta notificações
-      if (!('Notification' in window)) {
-        throw new Error('Este navegador não suporta notificações');
+      if (!this.isNotificationSupported()) {
+        return {
+          permission: 'unsupported',
+          error: 'Este navegador não suporta notificações push. Use Chrome ou Safari mais recente.'
+        };
       }
 
       // Verificar se já tem permissão
@@ -97,11 +124,21 @@ class PWAManager {
         throw new Error('Service worker não registrado');
       }
 
+      if (!this.isPushManagerSupported()) {
+        console.warn('PWA: Push Manager não suportado');
+        return null;
+      }
+
       // Verificar se já está subscrito
       let subscription = await this.swRegistration.pushManager.getSubscription();
       
       if (!subscription) {
-        // Criar nova subscrição
+        // Criar nova subscrição (apenas em HTTPS)
+        if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+          console.warn('PWA: Push notifications requerem HTTPS');
+          return null;
+        }
+
         subscription = await this.swRegistration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: this.urlBase64ToUint8Array(this.vapidPublicKey)
@@ -162,8 +199,16 @@ class PWAManager {
   // Mostrar notificação local
   async showLocalNotification(data: PushNotificationData) {
     try {
+      if (!this.isNotificationSupported()) {
+        console.warn('Notificações não suportadas neste navegador');
+        // Fallback: mostrar toast ou alert
+        this.showFallbackNotification(data);
+        return;
+      }
+
       if (Notification.permission !== 'granted') {
         console.warn('Permissão para notificações não concedida');
+        this.showFallbackNotification(data);
         return;
       }
 
@@ -189,11 +234,29 @@ class PWAManager {
 
     } catch (error) {
       console.error('Erro ao mostrar notificação local:', error);
+      this.showFallbackNotification(data);
     }
+  }
+
+  // Fallback para navegadores sem suporte a notificações
+  private showFallbackNotification(data: PushNotificationData) {
+    // Usar service worker se disponível
+    if (this.swRegistration && this.swRegistration.active) {
+      this.swRegistration.active.postMessage({
+        type: 'SHOW_FALLBACK_NOTIFICATION',
+        data: data
+      });
+      return;
+    }
+
+    // Último recurso: alert
+    alert(`${data.title}\n\n${data.body}`);
   }
 
   // Verificar se é PWA instalada
   isPWAInstalled(): boolean {
+    if (typeof window === 'undefined') return false;
+    
     return window.matchMedia('(display-mode: standalone)').matches ||
            (window.navigator as any).standalone === true;
   }
@@ -203,21 +266,38 @@ class PWAManager {
     return new Promise((resolve) => {
       let deferredPrompt: any = null;
 
-      window.addEventListener('beforeinstallprompt', (e) => {
+      const handleBeforeInstallPrompt = (e: any) => {
         e.preventDefault();
         deferredPrompt = e;
-      });
+      };
 
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult: any) => {
-          resolve(choiceResult.outcome === 'accepted');
-          deferredPrompt = null;
-        });
-      } else {
-        resolve(false);
-      }
+      window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+      // Timeout para prompt
+      setTimeout(() => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then((choiceResult: any) => {
+            resolve(choiceResult.outcome === 'accepted');
+            deferredPrompt = null;
+          });
+        } else {
+          // Fallback para iOS/Safari
+          if (this.isIOSSafari()) {
+            alert('Para instalar este app:\n1. Toque no botão Compartilhar\n2. Toque em "Adicionar à Tela de Início"');
+          }
+          resolve(false);
+        }
+        
+        window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      }, 1000);
     });
+  }
+
+  // Detectar iOS Safari
+  private isIOSSafari(): boolean {
+    const userAgent = navigator.userAgent;
+    return /iPad|iPhone|iPod/.test(userAgent) && !!(window as any).MSStream === false;
   }
 
   // Utility: Converter VAPID key
@@ -240,11 +320,12 @@ class PWAManager {
   getPWAInfo() {
     return {
       isInstalled: this.isPWAInstalled(),
-      hasServiceWorker: 'serviceWorker' in navigator,
-      hasNotifications: 'Notification' in window,
-      hasPushManager: 'PushManager' in window,
-      notificationPermission: Notification.permission,
-      isOnline: navigator.onLine
+      hasServiceWorker: this.isServiceWorkerSupported(),
+      hasNotifications: this.isNotificationSupported(),
+      hasPushManager: this.isPushManagerSupported(),
+      notificationPermission: this.isNotificationSupported() ? Notification.permission : 'unsupported',
+      isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
+      isIOSSafari: this.isIOSSafari()
     };
   }
 }
@@ -260,22 +341,26 @@ export class SalesNotificationManager {
 
   // Inicializar listener para novas vendas
   private initSalesListener() {
-    // Listener para mudanças na tabela sales
-    const salesChannel = supabase
-      .channel('sales-notifications')
-      .on('postgres_changes', 
-        { 
-          event: 'INSERT', 
-          schema: 'public', 
-          table: 'sales' 
-        }, 
-        (payload) => {
-          this.handleNewSale(payload.new as any);
-        }
-      )
-      .subscribe();
+    try {
+      // Listener para mudanças na tabela sales
+      const salesChannel = supabase
+        .channel('sales-notifications')
+        .on('postgres_changes', 
+          { 
+            event: 'INSERT', 
+            schema: 'public', 
+            table: 'sales' 
+          }, 
+          (payload) => {
+            this.handleNewSale(payload.new as any);
+          }
+        )
+        .subscribe();
 
-    console.log('🔔 Sales notification listener initialized');
+      console.log('🔔 Sales notification listener initialized');
+    } catch (error) {
+      console.error('Erro ao inicializar listener de vendas:', error);
+    }
   }
 
   // Handler para nova venda

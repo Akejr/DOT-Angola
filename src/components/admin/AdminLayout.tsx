@@ -65,6 +65,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         });
         
         setTimeout(() => setNotificationStatus(''), 3000);
+      } else if (result.permission === 'unsupported') {
+        setNotificationStatus('⚠️ Não suportado neste navegador');
+        setTimeout(() => setNotificationStatus(''), 5000);
       } else {
         setNotificationStatus('❌ Permissão negada');
         setTimeout(() => setNotificationStatus(''), 3000);
