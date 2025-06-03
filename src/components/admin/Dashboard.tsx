@@ -249,18 +249,18 @@ export default function Dashboard() {
 
   return (
     <div className="w-full max-w-full overflow-hidden">
-      <div className="space-y-4 sm:space-y-6 lg:space-y-8">
-        {/* Cabeçalho */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="space-y-3 sm:space-y-6">
+        {/* Cabeçalho - Mais compacto no mobile */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
           <div className="min-w-0 flex-1">
-            <h1 className="text-lg sm:text-2xl font-semibold text-[#01042D] truncate">Dashboard</h1>
-            <p className="mt-1 text-xs sm:text-sm text-gray-500 truncate">
+            <h1 className="text-base sm:text-2xl font-semibold text-[#01042D] truncate">Dashboard</h1>
+            <p className="text-xs sm:text-sm text-gray-500 truncate">
               Atualizado {formatDistanceToNow(lastUpdated, { locale: ptBR, addSuffix: true })}
             </p>
           </div>
           <div className="flex items-center gap-2">
             {stats.pendingNotifications > 0 && (
-              <div className="flex items-center gap-1 bg-red-50 text-red-600 px-2 py-1 rounded-lg text-xs">
+              <div className="flex items-center gap-1 bg-red-50 text-red-600 px-2 py-1 rounded-md text-xs">
                 <Bell className="w-3 h-3" />
                 <span className="hidden sm:inline">{stats.pendingNotifications} pendentes</span>
                 <span className="sm:hidden">{stats.pendingNotifications}</span>
@@ -269,7 +269,7 @@ export default function Dashboard() {
             <button 
               onClick={fetchData}
               disabled={isRefreshing}
-              className={`p-2 rounded-lg transition-colors flex-shrink-0 ${
+              className={`p-2 rounded-md transition-colors flex-shrink-0 ${
                 isRefreshing 
                   ? 'bg-gray-100 text-gray-400' 
                   : 'bg-[#01042D]/5 text-[#01042D] hover:bg-[#01042D]/10'
@@ -280,124 +280,118 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Filtros de Período - Melhorados para mobile */}
+        {/* Filtros de Período - Layout mobile first */}
         <div className="w-full">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-1 sm:p-1 sm:bg-gray-50 sm:rounded-xl">
+          <div className="grid grid-cols-4 gap-1 sm:gap-2 p-1 bg-gray-50 rounded-lg sm:rounded-xl">
             <button
               onClick={() => setPeriod('day')}
-              className={`px-2 py-2 sm:px-3 text-xs sm:text-sm rounded-lg transition-colors font-medium ${
+              className={`px-2 py-2 text-xs sm:text-sm rounded-md transition-colors font-medium text-center ${
                 period === 'day'
-                  ? 'bg-[#01042D] sm:bg-white text-white sm:text-[#01042D] sm:shadow-sm'
-                  : 'bg-gray-100 sm:bg-transparent text-gray-700 sm:text-gray-600 hover:bg-gray-200 sm:hover:bg-gray-100'
+                  ? 'bg-[#01042D] text-white sm:bg-white sm:text-[#01042D] sm:shadow-sm'
+                  : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               Hoje
             </button>
             <button
               onClick={() => setPeriod('week')}
-              className={`px-2 py-2 sm:px-3 text-xs sm:text-sm rounded-lg transition-colors font-medium ${
+              className={`px-2 py-2 text-xs sm:text-sm rounded-md transition-colors font-medium text-center ${
                 period === 'week'
-                  ? 'bg-[#01042D] sm:bg-white text-white sm:text-[#01042D] sm:shadow-sm'
-                  : 'bg-gray-100 sm:bg-transparent text-gray-700 sm:text-gray-600 hover:bg-gray-200 sm:hover:bg-gray-100'
+                  ? 'bg-[#01042D] text-white sm:bg-white sm:text-[#01042D] sm:shadow-sm'
+                  : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <span className="hidden sm:inline">Esta Semana</span>
-              <span className="sm:hidden">Semana</span>
+              Semana
             </button>
             <button
               onClick={() => setPeriod('month')}
-              className={`px-2 py-2 sm:px-3 text-xs sm:text-sm rounded-lg transition-colors font-medium ${
+              className={`px-2 py-2 text-xs sm:text-sm rounded-md transition-colors font-medium text-center ${
                 period === 'month'
-                  ? 'bg-[#01042D] sm:bg-white text-white sm:text-[#01042D] sm:shadow-sm'
-                  : 'bg-gray-100 sm:bg-transparent text-gray-700 sm:text-gray-600 hover:bg-gray-200 sm:hover:bg-gray-100'
+                  ? 'bg-[#01042D] text-white sm:bg-white sm:text-[#01042D] sm:shadow-sm'
+                  : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <span className="hidden sm:inline">Este Mês</span>
-              <span className="sm:hidden">Mês</span>
+              Mês
             </button>
             <button
               onClick={() => setPeriod('year')}
-              className={`px-2 py-2 sm:px-3 text-xs sm:text-sm rounded-lg transition-colors font-medium ${
+              className={`px-2 py-2 text-xs sm:text-sm rounded-md transition-colors font-medium text-center ${
                 period === 'year'
-                  ? 'bg-[#01042D] sm:bg-white text-white sm:text-[#01042D] sm:shadow-sm'
-                  : 'bg-gray-100 sm:bg-transparent text-gray-700 sm:text-gray-600 hover:bg-gray-200 sm:hover:bg-gray-100'
+                  ? 'bg-[#01042D] text-white sm:bg-white sm:text-[#01042D] sm:shadow-sm'
+                  : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <span className="hidden sm:inline">Este Ano</span>
-              <span className="sm:hidden">Ano</span>
+              Ano
             </button>
           </div>
         </div>
 
         {/* SEÇÃO: ANÁLISE DE USUÁRIOS E TRÁFEGO */}
-        <div className="space-y-4 sm:space-y-6">
-          {/* Título da Seção - Compacto no mobile */}
-          <div className="flex items-center gap-3 pb-2 border-b border-gray-200">
-            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg flex-shrink-0">
-              <Users className="h-4 w-4 sm:h-5 sm:w-5" />
+        <div className="space-y-3 sm:space-y-6">
+          {/* Título da Seção - Ultra compacto no mobile */}
+          <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+            <div className="p-1.5 sm:p-2 bg-blue-50 text-blue-600 rounded-md flex-shrink-0">
+              <Users className="h-3 w-3 sm:h-5 sm:w-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <h2 className="text-base sm:text-xl font-semibold text-gray-900 truncate">
-                <span className="hidden sm:inline">Análise de Usuários e Tráfego</span>
-                <span className="sm:hidden">Usuários & Tráfego</span>
+              <h2 className="text-sm sm:text-xl font-semibold text-gray-900 truncate">
+                Usuários & Tráfego
               </h2>
-              <p className="text-xs sm:text-sm text-gray-500 truncate">
-                <span className="hidden sm:inline">Métricas de visitantes e navegação do site</span>
-                <span className="sm:hidden">Métricas de visitantes</span>
+              <p className="text-xs text-gray-500 truncate">
+                Métricas de visitantes
               </p>
             </div>
           </div>
 
-          {/* Cards de Métricas - Layout melhorado para mobile */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6 w-full">
+          {/* Cards de Métricas - Stack vertical no mobile */}
+          <div className="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6">
             {/* Usuários Online */}
-            <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl sm:rounded-2xl p-4 sm:p-6 text-white min-w-0">
-              <div className="flex items-center justify-between gap-3">
+            <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-3 sm:p-6 text-white">
+              <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs sm:text-sm font-medium text-white/70 truncate">Usuários Online</p>
-                  <p className="mt-1 sm:mt-2 text-xl sm:text-3xl font-semibold">{stats.onlineUsers}</p>
-                  <div className="mt-2 sm:mt-3 flex items-center gap-1 text-xs text-white/70">
+                  <p className="text-xs font-medium text-white/70 truncate">Usuários Online</p>
+                  <p className="text-lg sm:text-3xl font-semibold mt-0.5 sm:mt-2">{stats.onlineUsers}</p>
+                  <div className="mt-1 sm:mt-3 flex items-center gap-1 text-xs text-white/70">
                     <Activity className="h-3 w-3 flex-shrink-0" />
                     <span className="truncate">Últimos 5 min</span>
                   </div>
                 </div>
-                <div className="bg-white/10 p-2 sm:p-3 rounded-lg sm:rounded-xl flex-shrink-0">
-                  <Users className="h-5 w-5 sm:h-6 sm:w-6" />
+                <div className="bg-white/10 p-2 rounded-md flex-shrink-0">
+                  <Users className="h-4 w-4 sm:h-6 sm:w-6" />
                 </div>
               </div>
             </div>
 
             {/* Sessões Únicas */}
-            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-100 min-w-0">
-              <div className="flex items-center justify-between gap-3">
+            <div className="bg-white rounded-lg p-3 sm:p-6 border border-gray-100">
+              <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs sm:text-sm font-medium text-gray-500 truncate">Sessões Únicas</p>
-                  <p className="mt-1 sm:mt-2 text-xl sm:text-3xl font-semibold text-blue-600">{stats.uniqueSessions[period]}</p>
-                  <div className="mt-2 sm:mt-3 flex items-center gap-1 text-xs text-gray-500">
+                  <p className="text-xs font-medium text-gray-500 truncate">Sessões Únicas</p>
+                  <p className="text-lg sm:text-3xl font-semibold text-blue-600 mt-0.5 sm:mt-2">{stats.uniqueSessions[period]}</p>
+                  <div className="mt-1 sm:mt-3 flex items-center gap-1 text-xs text-gray-500">
                     <Activity className="h-3 w-3 flex-shrink-0" />
                     <span className="truncate">{getPeriodLabel(period)}</span>
                   </div>
                 </div>
-                <div className="bg-blue-50 p-2 sm:p-3 rounded-lg sm:rounded-xl text-blue-600 flex-shrink-0">
-                  <MousePointerClick className="h-5 w-5 sm:h-6 sm:w-6" />
+                <div className="bg-blue-50 p-2 rounded-md text-blue-600 flex-shrink-0">
+                  <MousePointerClick className="h-4 w-4 sm:h-6 sm:w-6" />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Páginas Mais Acessadas - Layout otimizado para mobile */}
-          <div className="bg-white rounded-xl sm:rounded-2xl border border-gray-100 w-full min-w-0">
-            <div className="border-b border-gray-100 p-4 sm:p-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+          {/* Páginas Mais Acessadas - Compacto para mobile */}
+          <div className="bg-white rounded-lg border border-gray-100 w-full">
+            <div className="border-b border-gray-100 p-3 sm:p-6">
+              <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-sm sm:text-base font-medium text-gray-900 truncate">
-                    <span className="hidden sm:inline">Páginas Mais Acessadas</span>
-                    <span className="sm:hidden">Top Páginas</span>
+                  <h3 className="text-sm font-medium text-gray-900 truncate">
+                    Top Páginas
                   </h3>
-                  <p className="mt-1 text-xs sm:text-sm text-gray-500 truncate">{getPeriodLabel(period)}</p>
+                  <p className="text-xs text-gray-500 truncate">{getPeriodLabel(period)}</p>
                 </div>
-                <div className="bg-blue-50 p-2 rounded-lg self-start sm:self-auto flex-shrink-0">
-                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+                <div className="bg-blue-50 p-1.5 rounded-md flex-shrink-0">
+                  <Calendar className="h-3 w-3 sm:h-5 sm:w-5 text-blue-600" />
                 </div>
               </div>
             </div>
@@ -407,29 +401,28 @@ export default function Dashboard() {
                 topPages[period].map((page, index) => (
                   <div 
                     key={page.path}
-                    className="flex items-center p-3 sm:p-6 hover:bg-gray-50 transition-colors min-w-0"
+                    className="flex items-center p-3 sm:p-6 hover:bg-gray-50 transition-colors"
                   >
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-xs sm:text-sm font-medium flex-shrink-0
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                      <div className={`w-5 h-5 sm:w-8 sm:h-8 rounded-md flex items-center justify-center text-xs font-medium flex-shrink-0
                         ${index === 0 ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-600'}`}
                       >
                         {index + 1}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm sm:text-base font-medium text-gray-900 truncate">{page.title}</p>
-                        <p className="text-xs sm:text-sm text-gray-500 truncate">{page.path}</p>
+                        <p className="text-xs sm:text-base font-medium text-gray-900 truncate">{page.title}</p>
+                        <p className="text-xs text-gray-500 truncate">{page.path}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-1 flex-shrink-0 ml-2">
-                      <span className="text-sm sm:text-xl font-semibold text-blue-600">{page.views}</span>
+                      <span className="text-sm font-semibold text-blue-600">{page.views}</span>
                       <span className="text-xs text-gray-500 hidden sm:inline">views</span>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="p-4 sm:p-6 text-center text-gray-500 text-sm">
-                  <span className="hidden sm:inline">Nenhuma visualização registrada neste período</span>
-                  <span className="sm:hidden">Nenhuma visualização</span>
+                <div className="p-3 sm:p-6 text-center text-gray-500 text-xs">
+                  Nenhuma visualização
                 </div>
               )}
             </div>
