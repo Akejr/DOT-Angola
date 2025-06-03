@@ -254,9 +254,9 @@ self.addEventListener('message', (event) => {
     // Aqui vamos simular com setTimeout
     const now = new Date();
     const targetTime = new Date();
-    targetTime.setHours(20, 0, 0, 0); // 20:00
+    targetTime.setHours(20, 20, 0, 0); // 20:20
     
-    // Se já passou das 20:00 hoje, agendar para amanhã
+    // Se já passou das 20:20 hoje, agendar para amanhã
     if (now > targetTime) {
       targetTime.setDate(targetTime.getDate() + 1);
     }

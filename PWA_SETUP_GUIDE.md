@@ -68,82 +68,86 @@ Este guia explica como usar a PWA (Progressive Web App) do admin com notificaç�
 4. Você verá uma **notificação de teste** confirmando (se suportado)
 
 ### **Notificações Automáticas:**
-- 💰 **Nova Venda**: Sempre que alguém comprar algo
-- 📊 **Relatório Diário**: Todos os dias às **20:00** com lucro do dia
+- 💰 **Nova Venda**: Sempre que alguém comprar algo (funciona entre dispositivos)
+- 📊 **Relatório Diário**: Todos os dias às **20:20** com lucro do dia
 
 ---
 
 ## 🎛️ **Funcionalidades da PWA**
 
-### **📊 Dashboard Analytics**
+### **📊 Dashboard Analytics (Otimizado Mobile)**
+- **Interface responsiva** para todos os tamanhos de tela
 - **Usuários Online** (últimos 5 minutos)
 - **Sessões Únicas** por período
 - **Páginas Mais Acessadas** com ranking dinâmico
+- **Filtros compactos** no mobile (Hoje/Semana/Mês/Ano)
 - **Atualização automática** a cada 30 segundos
 
-### **🔔 Sistema de Notificações**
-- **Notificações Push** nativas (quando suportadas)
-- **Fallback para alertas** em navegadores limitados
+### **🔔 Sistema de Notificações Cross-Device**
+- **Notificações entre dispositivos**: Venda no PC → notifica no celular
+- **Sistema de fila**: Notificações pendentes sincronizadas via Supabase
+- **Fallback inteligente** em navegadores limitados
 - **Som e vibração** personalizados (Android/Desktop)
 - **Ações rápidas** (Abrir Admin / Fechar)
 - **Funciona offline** com service worker
 
-### **📱 Experiência Nativa**
+### **📱 Experiência Nativa Mobile**
+- **Layout otimizado** para telas pequenas
 - **Ícone na tela inicial** com logo da empresa
 - **Splash screen** personalizada
 - **Funciona offline** para páginas visitadas
+- **Navegação por gestos** nativa
 - **Atualização automática** quando há mudanças
 
 ---
 
 ## 🧪 **Teste das Notificações**
 
-### **Teste Manual:**
-1. No admin, clique no botão **"🧪 Testar Notificação"**
+### **Teste Cross-Device (Novo!):**
+1. No admin (PC/mobile), clique **"🧪 Teste Cross-Device"**
+2. Uma venda de teste será criada
+3. **TODOS os dispositivos** conectados receberão a notificação
+4. Funciona mesmo se o dispositivo estiver em outra aba/app
+
+### **Teste Manual Local:**
+1. No admin, clique **"🧪 Testar Notificação"**
 2. **Se suportado**: Notificação push nativa
 3. **Se não suportado**: Alert com a mensagem
 
-### **Teste de Venda:**
-1. Registre uma nova venda no sistema
-2. Você deve receber notificação com:
-   - Nome do cliente
-   - Valor da venda em AOA
+### **Teste de Venda Real:**
+1. Faça uma compra real no site
+2. **Todos os admins conectados** recebem notificação
+3. Funciona entre PC ↔ Mobile automaticamente
 
 ### **Teste de Relatório Diário:**
-- Aguarde até às **20:00** ou
-- Modifique o horário no `public/sw.js` para testar
+- Aguarde até às **20:20** ou
+- Modifique o horário no `public/sw.js` (linha ~200)
 
 ---
 
-## 🚨 **Resolução de Problemas Móveis**
+## 🚨 **Resolução de Problemas**
 
-### **❌ Erro: "can't find variable: Notification"**
-**Causa**: Navegador não suporta API de Notification
+### **❌ Notificações cross-device não funcionam:**
+**Causa**: Scripts SQL não executados ou erro no Supabase
 **Solução**:
-1. **Use Chrome no Android** (recomendado)
-2. **Use Safari no iOS** (suporte limitado)
-3. **Evite navegadores antigos** ou alternativos
-4. **Sistema automaticamente usa fallback** (alerts)
+1. **Execute** `supabase/migrations/cross_device_notifications.sql`
+2. **Verifique** tabela `pending_notifications` no Supabase
+3. **Teste** função: `SELECT test_new_sale_notification();`
+4. **Confirme** trigger na tabela `sales`
 
-### **❌ Notificações não chegam no iPhone:**
-**Causa**: iOS tem limitações com PWA
-**Soluções**:
-1. **Use Safari** (não Chrome no iOS)
-2. **Instale como PWA** primeiro
-3. **iOS 16.4+** tem melhor suporte
-4. **Sistema usa fallback** automaticamente
-
-### **❌ PWA não instala:**
-1. Certifique-se que está usando **HTTPS**
-2. **Recarregue a página** completamente
+### **❌ Dashboard não responsivo no mobile:**
+**Causa**: Cache do navegador ou PWA não atualizada
+**Solução**:
+1. **Force refresh** (Ctrl+F5 ou Cmd+Shift+R)
+2. **Desinstale e reinstale** a PWA
 3. **Limpe cache** do navegador
-4. Verifique se **manifest.json** está acessível
+4. **Atualize** para versão mais recente
 
-### **❌ Service Worker não funciona:**
-1. Abra **DevTools** → Application → Service Workers
-2. Clique em **"Unregister"** e recarregue
-3. Verifique **erros no console**
-4. Confirme que está em **HTTPS**
+### **📱 Layout quebrado no mobile:**
+1. **Teste em Chrome/Safari** atualizados
+2. **Verifique** se está usando a PWA instalada
+3. **Limpe cache** e recarregue
+4. **Desative extensões** do navegador
 
 ---
 
@@ -152,79 +156,68 @@ Este guia explica como usar a PWA (Progressive Web App) do admin com notificaç�
 ### **Personalizar Horário do Relatório:**
 No arquivo `public/sw.js`, linha ~200:
 ```javascript
-targetTime.setHours(20, 0, 0, 0); // 20:00 (8 PM)
+targetTime.setHours(20, 20, 0, 0); // 20:20 (8:20 PM)
 ```
 
-### **Personalizar Mensagens:**
-No arquivo `src/lib/pwa.ts`, função `handleNewSale()`:
+### **Verificar Sistema Cross-Device:**
+```sql
+-- Ver notificações pendentes
+SELECT * FROM pending_notifications WHERE status = 'pending';
+
+-- Ver histórico de notificações
+SELECT * FROM pending_notifications ORDER BY created_at DESC LIMIT 10;
+
+-- Teste manual de notificação
+SELECT test_new_sale_notification();
+
+-- Limpar notificações antigas
+SELECT cleanup_old_notifications();
+```
+
+### **Configurar Polling de Notificações:**
+No arquivo `src/lib/pwa.ts`, linha ~290:
 ```typescript
-title: '💰 Nova Venda Registrada!',
-body: `${sale.customer_name} - ${totalFormatted}`,
-```
-
-### **Fallback Personalizado:**
-Para navegadores sem suporte, o sistema usa:
-1. **Service Worker** (se disponível)
-2. **Alert nativo** (último recurso)
-
----
-
-## 📊 **Monitoramento**
-
-### **Verificar Subscriptions Ativas:**
-```sql
-SELECT count(*) FROM push_subscriptions;
-SELECT * FROM push_subscriptions ORDER BY created_at DESC;
-```
-
-### **Estatísticas de Vendas:**
-```sql
-SELECT get_daily_sales_stats(); -- Hoje
-SELECT get_daily_sales_stats('2024-01-15'); -- Data específica
-```
-
-### **Limpeza Automática:**
-```sql
-SELECT cleanup_old_push_subscriptions(); -- Remove subscriptions antigas
+// Verificar a cada 10 segundos (padrão)
+this.notificationInterval = setInterval(() => {
+  this.checkPendingNotifications();
+}, 10000); // Mude para 5000 para 5 segundos
 ```
 
 ---
 
-## 📱 **Compatibilidade Detalhada**
+## 📱 **Melhorias Mobile**
 
-### **✅ Totalmente Compatível:**
-- **Chrome Android** 42+
-- **Chrome Desktop** 42+
-- **Edge Desktop** 79+
-- **Firefox Desktop** 44+
+### **✅ Novos Recursos Mobile:**
+- **Grid responsivo** 2x2 para filtros
+- **Texto compacto** (Semana, Mês, Ano)
+- **Cards otimizados** com espaçamento reduzido
+- **Ícones menores** e texto escalável
+- **Layout flexível** que se adapta ao tamanho
+- **Navegação por toque** otimizada
 
-### **🔶 Parcialmente Compatível:**
-- **Safari iOS** 16.4+ (notificações limitadas)
-- **Safari Desktop** 16+ (funciona mas limitado)
-- **Samsung Internet** 6.2+
-
-### **❌ Não Compatível:**
-- **Chrome iOS** (usa WebKit do Safari)
-- **Navegadores antigos** (< 2020)
-- **Internet Explorer**
-- **Navegadores em HTTP** (sem HTTPS)
+### **🎨 Interface Mobile:**
+- **Bordas arredondadas** menores no mobile
+- **Espaçamento** otimizado para toque
+- **Tipografia** escalável por tamanho
+- **Cores contrastantes** para legibilidade
+- **Botões** de tamanho adequado para dedos
 
 ---
 
-## 🎉 **Resultado Final**
+## 🎉 **Resultado Final Atualizado**
 
-Após seguir este guia, você terá:
+Após as atualizações, você terá:
 
-✅ **PWA instalável** no iPhone/Android  
-✅ **Notificações automáticas** (onde suportado)  
-✅ **Fallback para alertas** (onde não suportado)  
-✅ **Relatório diário** às 20:00  
-✅ **Dashboard em tempo real**  
-✅ **Funciona offline**  
-✅ **Ícone personalizado** na tela inicial  
-✅ **Experiência nativa** completa  
+✅ **PWA totalmente responsiva** para mobile  
+✅ **Notificações cross-device** (PC ↔ celular)  
+✅ **Dashboard otimizado** para telas pequenas  
+✅ **Relatório diário** às 20:20  
+✅ **Sistema de fila** para notificações  
+✅ **Fallback inteligente** para todos os navegadores  
+✅ **Interface nativa** em qualquer dispositivo  
+✅ **Sincronização automática** via Supabase  
 
-**🚀 A PWA funciona em TODOS os dispositivos com fallbacks inteligentes!**
+**🚀 Sistema PWA profissional com notificações cross-device funcionais!**
 
 ---
 

@@ -333,75 +333,132 @@ class PWAManager {
 // Sistema de notificações para vendas
 export class SalesNotificationManager {
   private pwaManager: PWAManager;
+  private notificationInterval: NodeJS.Timeout | null = null;
 
   constructor() {
     this.pwaManager = new PWAManager();
-    this.initSalesListener();
+    this.initCrossDeviceNotifications();
   }
 
-  // Inicializar listener para novas vendas
-  private initSalesListener() {
+  // Inicializar sistema de notificações cross-device
+  private initCrossDeviceNotifications() {
     try {
-      // Listener para mudanças na tabela sales
-      const salesChannel = supabase
-        .channel('sales-notifications')
-        .on('postgres_changes', 
-          { 
-            event: 'INSERT', 
-            schema: 'public', 
-            table: 'sales' 
-          }, 
-          (payload) => {
-            this.handleNewSale(payload.new as any);
-          }
-        )
-        .subscribe();
+      console.log('🔔 Iniciando sistema de notificações cross-device...');
+      
+      // Verificar notificações pendentes a cada 10 segundos
+      this.notificationInterval = setInterval(() => {
+        this.checkPendingNotifications();
+      }, 10000);
 
-      console.log('🔔 Sales notification listener initialized');
+      // Verificar imediatamente
+      this.checkPendingNotifications();
+
+      console.log('✅ Sistema de notificações cross-device iniciado');
     } catch (error) {
-      console.error('Erro ao inicializar listener de vendas:', error);
+      console.error('Erro ao inicializar notificações cross-device:', error);
     }
   }
 
-  // Handler para nova venda
-  private async handleNewSale(sale: any) {
+  // Verificar e processar notificações pendentes
+  private async checkPendingNotifications() {
     try {
-      const totalFormatted = new Intl.NumberFormat('pt-AO', {
-        style: 'currency',
-        currency: 'AOA',
-        minimumFractionDigits: 0
-      }).format(sale.total);
+      // Buscar notificações pendentes
+      const { data: notifications, error } = await supabase
+        .rpc('get_pending_notifications');
 
-      await this.pwaManager.showLocalNotification({
-        title: '💰 Nova Venda Registrada!',
-        body: `${sale.customer_name} - ${totalFormatted}`,
-        icon: '/pwa-icons/icon-192x192.png',
-        tag: 'new-sale',
-        data: {
-          saleId: sale.id,
-          url: '/admin/vendas'
-        },
-        requireInteraction: true
-      });
+      if (error) {
+        console.error('Erro ao buscar notificações pendentes:', error);
+        return;
+      }
+
+      if (!notifications || notifications.length === 0) {
+        return;
+      }
+
+      console.log(`📬 ${notifications.length} notificação(ões) pendente(s) encontrada(s)`);
+
+      // Processar cada notificação
+      for (const notification of notifications) {
+        await this.processNotification(notification);
+      }
 
     } catch (error) {
-      console.error('Erro ao notificar nova venda:', error);
+      console.error('Erro ao verificar notificações pendentes:', error);
+    }
+  }
+
+  // Processar uma notificação individual
+  private async processNotification(notification: any) {
+    try {
+      // Mostrar notificação local
+      await this.pwaManager.showLocalNotification({
+        title: notification.title,
+        body: notification.body,
+        icon: '/pwa-icons/icon-192x192.png',
+        tag: `${notification.type}-${notification.id}`,
+        data: notification.data,
+        requireInteraction: notification.type === 'new_sale'
+      });
+
+      // Marcar como enviada
+      const { error } = await supabase
+        .rpc('mark_notification_sent', { 
+          notification_id: notification.id 
+        });
+
+      if (error) {
+        console.error('Erro ao marcar notificação como enviada:', error);
+      } else {
+        console.log(`✅ Notificação ${notification.id} processada com sucesso`);
+      }
+
+    } catch (error) {
+      console.error('Erro ao processar notificação:', error);
     }
   }
 
   // Notificação manual para teste
   async testSaleNotification() {
-    await this.pwaManager.showLocalNotification({
-      title: '🧪 Teste - Nova Venda',
-      body: 'João Silva - 15.000 AOA',
-      tag: 'test-sale',
-      requireInteraction: true
-    });
+    try {
+      // Criar uma venda de teste que vai trigger o sistema
+      const { error } = await supabase
+        .rpc('test_new_sale_notification');
+
+      if (error) {
+        console.error('Erro ao criar venda de teste:', error);
+        // Fallback para notificação local
+        await this.pwaManager.showLocalNotification({
+          title: '🧪 Teste - Nova Venda',
+          body: 'João Silva (TESTE) - 15.000 AOA',
+          tag: 'test-sale',
+          requireInteraction: true
+        });
+      } else {
+        console.log('✅ Venda de teste criada - notificação será enviada automaticamente');
+      }
+    } catch (error) {
+      console.error('Erro no teste de notificação:', error);
+      // Fallback
+      await this.pwaManager.showLocalNotification({
+        title: '🧪 Teste - Nova Venda',
+        body: 'João Silva (TESTE) - 15.000 AOA',
+        tag: 'test-sale',
+        requireInteraction: true
+      });
+    }
   }
 
   // Configurar permissões
   async setupNotifications() {
     return await this.pwaManager.requestNotificationPermission();
+  }
+
+  // Cleanup ao destruir
+  destroy() {
+    if (this.notificationInterval) {
+      clearInterval(this.notificationInterval);
+      this.notificationInterval = null;
+    }
   }
 }
 

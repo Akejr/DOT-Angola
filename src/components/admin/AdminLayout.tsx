@@ -154,7 +154,51 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             ))}
           </nav>
           
-          <div className="absolute bottom-0 left-0 right-0 p-4 border-t">
+          {/* Seção PWA Mobile */}
+          <div className="p-4 border-t">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <Smartphone className="h-4 w-4" />
+                <span>PWA Status</span>
+              </div>
+              
+              {!pwaInfo?.isInstalled && (
+                <button
+                  onClick={handleInstallPWA}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                >
+                  <Download className="h-4 w-4" />
+                  Instalar App
+                </button>
+              )}
+              
+              <button
+                onClick={handleNotificationSetup}
+                className="w-full flex items-center gap-2 px-3 py-2 text-xs bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors"
+              >
+                <Bell className="h-4 w-4" />
+                {pwaInfo?.notificationPermission === 'granted' ? 'Notificações Ativas' : 'Ativar Notificações'}
+              </button>
+              
+              {process.env.NODE_ENV === 'development' && (
+                <button
+                  onClick={testNotification}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-colors"
+                >
+                  🧪 Teste Cross-Device
+                </button>
+              )}
+              
+              {notificationStatus && (
+                <div className="p-2 text-xs text-center bg-gray-50 rounded-lg">
+                  {notificationStatus}
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Perfil do Usuário Mobile */}
+          <div className="p-4 border-t">
             <div className="flex items-center gap-3 px-4 py-2">
               <div className="h-9 w-9 rounded-full bg-[#01042D] text-white flex items-center justify-center">
                 <User className="h-5 w-5" />
@@ -163,7 +207,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 <p className="text-sm font-medium text-[#01042D] truncate">Administrador</p>
                 <p className="text-xs text-gray-500 truncate">admin@digiftcard.com</p>
               </div>
-              <button className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100">
+              <button 
+                onClick={handleLogout}
+                className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100"
+              >
                 <LogOut className="h-4 w-4" />
               </button>
             </div>
@@ -199,6 +246,50 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           ))}
         </nav>
         
+        {/* Seção PWA */}
+        <div className="p-4 border-t">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <Smartphone className="h-4 w-4" />
+              <span>PWA Status</span>
+            </div>
+            
+            {!pwaInfo?.isInstalled && (
+              <button
+                onClick={handleInstallPWA}
+                className="w-full flex items-center gap-2 px-3 py-2 text-xs bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+              >
+                <Download className="h-4 w-4" />
+                Instalar App
+              </button>
+            )}
+            
+            <button
+              onClick={handleNotificationSetup}
+              className="w-full flex items-center gap-2 px-3 py-2 text-xs bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors"
+            >
+              <Bell className="h-4 w-4" />
+              {pwaInfo?.notificationPermission === 'granted' ? 'Notificações Ativas' : 'Ativar Notificações'}
+            </button>
+            
+            {process.env.NODE_ENV === 'development' && (
+              <button
+                onClick={testNotification}
+                className="w-full flex items-center gap-2 px-3 py-2 text-xs bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-colors"
+              >
+                🧪 Teste Cross-Device
+              </button>
+            )}
+            
+            {notificationStatus && (
+              <div className="p-2 text-xs text-center bg-gray-50 rounded-lg">
+                {notificationStatus}
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Perfil do Usuário */}
         <div className="p-4 border-t">
           <div className="flex items-center gap-3 px-4 py-2">
             <div className="h-9 w-9 rounded-full bg-[#01042D] text-white flex items-center justify-center">
@@ -208,7 +299,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               <p className="text-sm font-medium text-[#01042D] truncate">Administrador</p>
               <p className="text-xs text-gray-500 truncate">admin@digiftcard.com</p>
             </div>
-            <button className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100">
+            <button 
+              onClick={handleLogout}
+              className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100"
+            >
               <LogOut className="h-4 w-4" />
             </button>
           </div>
