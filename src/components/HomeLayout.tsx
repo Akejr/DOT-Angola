@@ -188,8 +188,8 @@ const HomeLayout = () => {
   return (
     <>
       <SEO 
-        title="Gift Cards e Visa Virtual"
-        description="A melhor plataforma de gift cards internacionais e cartões Visa Virtual em Angola. Compre com segurança e os melhores preços do mercado."
+        title="DOT Angola | O melhor da tecnologia em angola"
+        description="Plataforma líder em gift cards internacionais e cartões Visa Virtual em Angola. Compre com segurança, receba em casa e pague em Kwanzas com os melhores preços do mercado angolano."
       />
       
       <div className="min-h-screen bg-gray-100 flex items-center justify-center p-0 sm:p-4">

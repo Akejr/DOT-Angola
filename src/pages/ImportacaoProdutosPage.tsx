@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import Navigation from '@/components/Navigation';
 import { SEO } from '@/components/SEO';
 import { supabase } from '@/lib/supabase';
+import { notifyNewImportRequest } from '@/lib/notifications';
 
 export default function ImportacaoProdutosPage() {
   const [loading, setLoading] = useState(false);
@@ -250,7 +251,7 @@ export default function ImportacaoProdutosPage() {
       }
 
       // Inserir os dados no Supabase
-      const { error: insertError } = await supabase
+      const { data: insertData, error: insertError } = await supabase
         .from('import_requests')
         .insert({
           product_name: formData.productName,
@@ -267,9 +268,23 @@ export default function ImportacaoProdutosPage() {
           province: formData.province,
           status: 'pending',
           created_at: new Date().toISOString()
-        });
+        })
+        .select()
+        .single();
 
       if (insertError) throw insertError;
+
+      // Criar notificação automática para o admin
+      try {
+        await notifyNewImportRequest({
+          product_name: formData.productName,
+          full_name: formData.fullName,
+          urgency_level: formData.urgencyLevel as 'urgent' | 'not-urgent'
+        });
+      } catch (notificationError) {
+        // Log do erro mas não interrompe o fluxo principal
+        console.warn('Erro ao criar notificação automática:', notificationError);
+      }
       
       setSuccess(true);
       // Resetar o formulário
@@ -1153,8 +1168,8 @@ export default function ImportacaoProdutosPage() {
   return (
     <>
       <SEO 
-        title="Importação de Produtos"
-        description="Solicite a importação de produtos por meio da DOT. Preenchendo o formulário, nossa equipe entrará em contato para finalizar seu pedido."
+        title="Importação de Produtos | DOT Angola"
+        description="Importe produtos da Europa para Angola com a DOT. Eletrônicos, gadgets e tecnologia entregues em sua casa em Luanda e outras províncias. Processo seguro e rastreado."
       />
       <div className="min-h-screen bg-gray-100 flex items-center justify-center p-0 sm:p-4">
         <div className="max-w-6xl w-full bg-white rounded-none sm:rounded-3xl shadow-xl overflow-hidden flex flex-col min-h-screen sm:min-h-[calc(100vh-2rem)]">

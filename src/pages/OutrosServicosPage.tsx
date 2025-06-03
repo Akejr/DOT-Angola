@@ -326,8 +326,8 @@ Gostaria de realizar esta transferência internacional.`;
   return (
     <>
       <SEO 
-        title="Transferências Internacionais | DOT ANGOLA"
-        description="Envie dinheiro de Angola para Europa, Brasil e outros países com as melhores taxas. Transferências rápidas, seguras e confiáveis."
+        title="Transferências Internacionais | DOT Angola"
+        description="Transfira dinheiro de Angola para o mundo todo. Envie para Europa, Brasil, EUA e outros países com as melhores taxas de câmbio e menor tempo de processamento no mercado angolano."
         type="website"
       />
       

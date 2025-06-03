@@ -12,7 +12,7 @@ const SobreNosPage: React.FC = () => {
     <>
       <SEO 
         title="Sobre Nós"
-        description="Conheça a DOT ANGOLA, sua loja online de confiança para gift cards e cartões virtuais em Angola. Saiba mais sobre nossa missão e valores."
+        description="Conheça a DOT Angola, empresa 100% angolana especializada em gift cards internacionais e cartões Visa Virtual. Loja online com ponto de atendimento em Luanda-Cassenda, oferecendo tecnologia digital para todo Angola."
         type="website"
       />
       <MainLayout onPageChange={handlePageChange}>

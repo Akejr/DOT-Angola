@@ -309,8 +309,8 @@ const VisaVirtualPage: React.FC = () => {
   return (
     <>
       <SEO 
-        title="Cartão Visa Virtual"
-        description="Solicite seu cartão Visa Virtual pré-pago para compras online com segurança e praticidade. Ideal para compras internacionais."
+        title="Visa Virtual | DOT Angola"
+        description="Cartão Visa Virtual pré-pago para angolanos comprarem online no exterior. Pagamento em Kwanzas, entrega digital instantânea e aceito mundialmente para compras internacionais seguras."
         type="product"
       />
       <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">

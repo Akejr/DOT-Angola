@@ -77,7 +77,7 @@ ${formData.mensagem}`;
     <>
       <SEO 
         title="Contato"
-        description="Entre em contato com a DOT ANGOLA. Estamos aqui para ajudar com suas dúvidas sobre tecnologia, cartões presente e cartões virtuais."
+        description="Fale conosco! Atendimento especializado em Angola via WhatsApp, email ou presencialmente em Luanda-Cassenda. Suporte para gift cards, Visa Virtual e importações."
         type="website"
       />
       <MainLayout onPageChange={handlePageChange}>

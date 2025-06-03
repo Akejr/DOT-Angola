@@ -109,9 +109,9 @@ export default function SalesManager() {
   const [customerLocation, setCustomerLocation] = useState('');
   const [saleItems, setSaleItems] = useState<SaleItem[]>([]);
   const [productName, setProductName] = useState('');
-  const [quantity, setQuantity] = useState(1);
-  const [unitPrice, setUnitPrice] = useState(0);
-  const [profit, setProfit] = useState(0);
+  const [quantity, setQuantity] = useState<number | string>(1);
+  const [unitPrice, setUnitPrice] = useState<number | string>(0);
+  const [profit, setProfit] = useState<number | string>(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSaleForPDF, setSelectedSaleForPDF] = useState<Sale | null>(null);
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
@@ -156,6 +156,20 @@ export default function SalesManager() {
   const [editingSale, setEditingSale] = useState<Sale | null>(null);
   const [editingItem, setEditingItem] = useState<SaleItem | null>(null);
   const [editingProfit, setEditingProfit] = useState(0);
+
+  // Funções auxiliares para conversão de valores
+  const getNumericValue = (value: number | string): number => {
+    if (typeof value === 'string') {
+      const parsed = parseFloat(value);
+      return isNaN(parsed) ? 0 : parsed;
+    }
+    return value;
+  };
+
+  const getQuantityValue = (value: number | string): number => {
+    const numeric = getNumericValue(value);
+    return numeric <= 0 ? 1 : numeric;
+  };
 
   // Função para buscar produtos do banco de dados
   const { data: products = [] } = useQuery({
@@ -253,7 +267,11 @@ export default function SalesManager() {
     
     try {
       if (isManualEntry) {
-        if (!productName || quantity <= 0 || unitPrice <= 0) {
+        const numericQuantity = getQuantityValue(quantity);
+        const numericUnitPrice = getNumericValue(unitPrice);
+        const numericProfit = getNumericValue(profit);
+
+        if (!productName || numericQuantity <= 0 || numericUnitPrice <= 0) {
           toast({
             title: "Erro ao adicionar item",
             description: "Preencha todos os campos corretamente",
@@ -265,10 +283,10 @@ export default function SalesManager() {
         const newItem: SaleItem = {
           id: crypto.randomUUID(),
           product_name: productName,
-          quantity,
-          unit_price: unitPrice,
-          total_price: quantity * unitPrice,
-          profit: profit
+          quantity: numericQuantity,
+          unit_price: numericUnitPrice,
+          total_price: numericQuantity * numericUnitPrice,
+          profit: numericProfit
         };
 
         setSaleItems([...saleItems, newItem]);
@@ -315,6 +333,9 @@ export default function SalesManager() {
           return;
         }
 
+        const numericQuantity = getQuantityValue(quantity);
+        const numericProfit = getNumericValue(profit);
+
         // Verificar se o produto com este plano específico já existe na lista
         const existingItemIndex = saleItems.findIndex(
           item => item.product_name === `${product.name} - ${selectedPlanData.name || 'Plano Básico'}`
@@ -324,14 +345,14 @@ export default function SalesManager() {
           // Se o produto já existir, atualizar a quantidade e o total
           const updatedItems = [...saleItems];
           const existingItem = updatedItems[existingItemIndex];
-          const newQuantity = existingItem.quantity + quantity;
+          const newQuantity = existingItem.quantity + numericQuantity;
           const newTotalPrice = newQuantity * existingItem.unit_price;
           
           updatedItems[existingItemIndex] = {
             ...existingItem,
             quantity: newQuantity,
             total_price: newTotalPrice,
-            profit: profit // Atualizar o lucro também
+            profit: numericProfit // Atualizar o lucro também
           };
           
           setSaleItems(updatedItems);
@@ -347,10 +368,10 @@ export default function SalesManager() {
           const newItem: SaleItem = {
             id: crypto.randomUUID(),
             product_name: `${product.name} - ${planName}`,
-            quantity,
+            quantity: numericQuantity,
             unit_price: planPrice,
-            total_price: quantity * planPrice,
-            profit: profit
+            total_price: numericQuantity * planPrice,
+            profit: numericProfit
           };
 
           setSaleItems([...saleItems, newItem]);
@@ -925,284 +946,400 @@ export default function SalesManager() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Componente oculto para gerar PDF */}
-      {selectedSaleForPDF && !isPdfGenerating && (
-        <div className="hidden">
-          <SalesInvoicePDF 
-            sale={selectedSaleForPDF} 
-            onGenerated={(blob) => {
-              setIsPdfGenerating(true);
-              handlePdfGenerated(blob);
-              setIsPdfGenerating(false);
-            }} 
-          />
-        </div>
-      )}
+    <div className="w-full max-w-full overflow-hidden">
+      <div className="space-y-4 sm:space-y-6">
+        {/* Componente oculto para gerar PDF */}
+        {selectedSaleForPDF && !isPdfGenerating && (
+          <div className="hidden">
+            <SalesInvoicePDF 
+              sale={selectedSaleForPDF} 
+              onGenerated={(blob) => {
+                setIsPdfGenerating(true);
+                handlePdfGenerated(blob);
+                setIsPdfGenerating(false);
+              }} 
+            />
+          </div>
+        )}
 
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Gestão de Vendas</h2>
-          <p className="text-muted-foreground">
-            Gerencie todas as vendas e faturas em um só lugar
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={generateMonthlyReport} disabled={isGeneratingReport} className="flex items-center gap-2">
-            {isGeneratingReport ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Gerando...</span>
-              </>
-            ) : (
-              <>
-                <FileDown className="h-4 w-4" />
-                <span>Relatório Mensal</span>
-              </>
-            )}
-          </Button>
-          <Button onClick={() => setIsAddSaleDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" /> Nova Venda
-          </Button>
-        </div>
-      </div>
-
-      {/* Cards de estatísticas */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Vendas</CardTitle>
-            <Receipt className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalSales}</div>
-            <p className="text-xs text-muted-foreground">
-              {format(new Date(`${selectedYear}-${selectedMonth}-15T12:00:00`), 'MMMM yyyy', { locale: pt })}
+        {/* Cabeçalho */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight truncate">Gestão de Vendas</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground truncate">
+              Gerencie todas as vendas e faturas em um só lugar
             </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Faturação Total</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalRevenue.toLocaleString('pt-AO')} AOA</div>
-            <p className="text-xs text-muted-foreground">
-              {format(new Date(`${selectedYear}-${selectedMonth}-15T12:00:00`), 'MMMM yyyy', { locale: pt })}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Lucro Total</CardTitle>
-            <ArrowDown className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalProfit.toLocaleString('pt-AO')} AOA</div>
-            <div className="flex items-center gap-2">
-              <p className="text-xs text-muted-foreground">
-                {format(new Date(`${selectedYear}-${selectedMonth}-15T12:00:00`), 'MMMM yyyy', { locale: pt })}
-              </p>
-              {stats?.totalRevenue > 0 && (
-                <p className="text-xs text-green-600 font-medium">
-                  {((stats?.totalProfit / stats?.totalRevenue) * 100).toFixed(1)}% de margem
-                </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <Button 
+              variant="outline" 
+              onClick={generateMonthlyReport} 
+              disabled={isGeneratingReport} 
+              className="flex items-center gap-2 w-full sm:w-auto text-xs sm:text-sm"
+              size="sm"
+            >
+              {isGeneratingReport ? (
+                <>
+                  <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                  <span className="hidden sm:inline">Gerando...</span>
+                  <span className="sm:hidden">Gerando</span>
+                </>
+              ) : (
+                <>
+                  <FileDown className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Relatório Mensal</span>
+                  <span className="sm:hidden">Relatório</span>
+                </>
               )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </Button>
+            <Button onClick={() => setIsAddSaleDialogOpen(true)} className="w-full sm:w-auto text-xs sm:text-sm" size="sm">
+              <Plus className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Nova Venda</span>
+              <span className="sm:hidden">Nova</span>
+            </Button>
+          </div>
+        </div>
 
-      {/* Filtros */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="flex-1">
+        {/* Cards de estatísticas */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          <Card className="min-w-0">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+              <CardTitle className="text-xs sm:text-sm font-medium truncate">Total de Vendas</CardTitle>
+              <Receipt className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+            </CardHeader>
+            <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+              <div className="text-lg sm:text-2xl font-bold">{totalSales}</div>
+              <p className="text-xs text-muted-foreground truncate">
+                {format(new Date(`${selectedYear}-${selectedMonth}-15T12:00:00`), 'MMM yyyy', { locale: pt })}
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card className="min-w-0">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+              <CardTitle className="text-xs sm:text-sm font-medium truncate">Faturação Total</CardTitle>
+              <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+            </CardHeader>
+            <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+              <div className="text-lg sm:text-2xl font-bold truncate">{totalRevenue.toLocaleString('pt-AO')} AOA</div>
+              <p className="text-xs text-muted-foreground truncate">
+                {format(new Date(`${selectedYear}-${selectedMonth}-15T12:00:00`), 'MMM yyyy', { locale: pt })}
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card className="min-w-0 sm:col-span-2 lg:col-span-1">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+              <CardTitle className="text-xs sm:text-sm font-medium truncate">Lucro Total</CardTitle>
+              <ArrowDown className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+            </CardHeader>
+            <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+              <div className="text-lg sm:text-2xl font-bold truncate">{stats?.totalProfit.toLocaleString('pt-AO')} AOA</div>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                <p className="text-xs text-muted-foreground truncate">
+                  {format(new Date(`${selectedYear}-${selectedMonth}-15T12:00:00`), 'MMM yyyy', { locale: pt })}
+                </p>
+                {stats?.totalRevenue > 0 && (
+                  <p className="text-xs text-green-600 font-medium truncate">
+                    {((stats?.totalProfit / stats?.totalRevenue) * 100).toFixed(1)}% margem
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filtros */}
+        <div className="flex flex-col gap-3 sm:gap-4">
           <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-2.5 h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             <Input
               type="search"
               placeholder="Buscar vendas..."
-              className="pl-8"
+              className="pl-8 sm:pl-10 text-xs sm:text-sm h-8 sm:h-10"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+          
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-2">
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="w-full sm:w-[140px] lg:w-[180px] text-xs sm:text-sm h-8 sm:h-10">
+                <SelectValue placeholder="Mês" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="01">Janeiro</SelectItem>
+                <SelectItem value="02">Fevereiro</SelectItem>
+                <SelectItem value="03">Março</SelectItem>
+                <SelectItem value="04">Abril</SelectItem>
+                <SelectItem value="05">Maio</SelectItem>
+                <SelectItem value="06">Junho</SelectItem>
+                <SelectItem value="07">Julho</SelectItem>
+                <SelectItem value="08">Agosto</SelectItem>
+                <SelectItem value="09">Setembro</SelectItem>
+                <SelectItem value="10">Outubro</SelectItem>
+                <SelectItem value="11">Novembro</SelectItem>
+                <SelectItem value="12">Dezembro</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <SelectTrigger className="w-full sm:w-[120px] lg:w-[140px] text-xs sm:text-sm h-8 sm:h-10">
+                <SelectValue placeholder="Ano" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableYears.map(year => (
+                  <SelectItem key={year} value={year}>{year}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <div className="flex flex-col md:flex-row gap-2">
-          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Selecione o mês" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="01">Janeiro</SelectItem>
-              <SelectItem value="02">Fevereiro</SelectItem>
-              <SelectItem value="03">Março</SelectItem>
-              <SelectItem value="04">Abril</SelectItem>
-              <SelectItem value="05">Maio</SelectItem>
-              <SelectItem value="06">Junho</SelectItem>
-              <SelectItem value="07">Julho</SelectItem>
-              <SelectItem value="08">Agosto</SelectItem>
-              <SelectItem value="09">Setembro</SelectItem>
-              <SelectItem value="10">Outubro</SelectItem>
-              <SelectItem value="11">Novembro</SelectItem>
-              <SelectItem value="12">Dezembro</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Selecione o ano" />
-            </SelectTrigger>
-            <SelectContent>
-              {availableYears.map(year => (
-                <SelectItem key={year} value={year}>{year}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
 
-      {/* Tabela de vendas */}
-      <div className="rounded-md border">
-        <div className="max-h-[500px] overflow-y-auto">
-          <Table>
-            <TableHeader className="sticky top-0 bg-background z-10">
-              <TableRow>
-                <TableHead>Nº Fatura</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Produto(s)</TableHead>
-                <TableHead>Data</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-10">
-                    Carregando...
-                  </TableCell>
-                </TableRow>
-              ) : filteredSales.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
-                    Nenhuma venda encontrada para o período selecionado
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredSales.map((sale) => (
-                  <TableRow key={sale.id}>
-                    <TableCell className="font-medium">{sale.invoice_number}</TableCell>
-                    <TableCell>{sale.customer_name}</TableCell>
-                    <TableCell>
-                      {/* Mostrar os produtos da venda - limitado a 2 com indicação de mais */}
-                      {sale.items?.length > 0 ? (
-                        <div>
-                          {sale.items.slice(0, 2).map((item, index) => (
-                            <div key={index} className="truncate text-sm">
-                              {item.product_name}
+        {/* Tabela de vendas - Mobile first com scroll horizontal controlado */}
+        <div className="w-full min-w-0">
+          <div className="rounded-md border bg-white overflow-hidden">
+            <div className="max-h-[400px] sm:max-h-[500px] overflow-y-auto">
+              {/* Mobile View */}
+              <div className="block sm:hidden">
+                {isLoading ? (
+                  <div className="p-6 text-center text-sm">Carregando...</div>
+                ) : filteredSales.length === 0 ? (
+                  <div className="p-6 text-center text-sm text-muted-foreground">
+                    Nenhuma venda encontrada
+                  </div>
+                ) : (
+                  <div className="divide-y divide-gray-100">
+                    {filteredSales.map((sale) => (
+                      <div key={sale.id} className="p-3 space-y-2 min-w-0">
+                        <div className="flex justify-between items-start gap-2 min-w-0">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="text-xs font-medium text-muted-foreground truncate">#{sale.invoice_number}</span>
+                              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded flex-shrink-0">
+                                {formatDateWithTimezone(sale.date)}
+                              </span>
                             </div>
-                          ))}
-                          {sale.items.length > 2 && (
-                            <div className="text-xs text-muted-foreground mt-1">
-                              + {sale.items.length - 2} mais
-                            </div>
-                          )}
+                            <h4 className="font-medium text-sm truncate mt-1">{sale.customer_name}</h4>
+                            <p className="text-xs text-muted-foreground truncate">{sale.customer_location}</p>
+                          </div>
+                          <div className="text-right flex-shrink-0 min-w-0">
+                            <div className="text-sm font-bold truncate">{sale.total.toLocaleString('pt-AO')} AOA</div>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-6 w-6 p-0 mt-1">
+                                  <MoreVertical className="h-3 w-3" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="min-w-0">
+                                <DropdownMenuItem 
+                                  onClick={() => downloadPDF(sale)}
+                                  disabled={isPdfDownloading}
+                                  className="min-w-0"
+                                >
+                                  {isPdfDownloading ? (
+                                    <>
+                                      <Loader2 className="mr-2 h-3 w-3 animate-spin flex-shrink-0" />
+                                      <span className="text-xs truncate">Gerando...</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Download className="mr-2 h-3 w-3 flex-shrink-0" />
+                                      <span className="text-xs truncate">PDF</span>
+                                    </>
+                                  )}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => editSale(sale)} className="min-w-0">
+                                  <Edit className="mr-2 h-3 w-3 flex-shrink-0" />
+                                  <span className="text-xs truncate">Editar</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleDeleteClick(sale)}
+                                  className="text-red-600 min-w-0"
+                                >
+                                  <Trash className="mr-2 h-3 w-3 flex-shrink-0" />
+                                  <span className="text-xs truncate">Excluir</span>
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </div>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">Sem produtos</span>
-                      )}
-                    </TableCell>
-                    <TableCell>{formatDateWithTimezone(sale.date)}</TableCell>
-                    <TableCell className="text-right">{sale.total.toLocaleString('pt-AO')} AOA</TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Abrir menu</span>
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem 
-                            onClick={() => downloadPDF(sale)}
-                            disabled={isPdfDownloading}
-                          >
-                            {isPdfDownloading ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                <span>Gerando PDF...</span>
-                              </>
+                        
+                        {sale.items?.length > 0 && (
+                          <div className="pt-2 border-t border-gray-100 min-w-0">
+                            <div className="text-xs text-muted-foreground mb-1">Produtos:</div>
+                            <div className="space-y-1 min-w-0">
+                              {sale.items.slice(0, 2).map((item, index) => (
+                                <div key={index} className="text-xs truncate">
+                                  {item.quantity}x {item.product_name}
+                                </div>
+                              ))}
+                              {sale.items.length > 2 && (
+                                <div className="text-xs text-muted-foreground truncate">
+                                  +{sale.items.length - 2} mais
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Desktop View */}
+              <div className="hidden sm:block min-w-0">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-background z-10">
+                    <TableRow>
+                      <TableHead className="text-xs min-w-0">Nº Fatura</TableHead>
+                      <TableHead className="text-xs min-w-0">Cliente</TableHead>
+                      <TableHead className="text-xs min-w-0">Produto(s)</TableHead>
+                      <TableHead className="text-xs min-w-0">Data</TableHead>
+                      <TableHead className="text-right text-xs min-w-0">Total</TableHead>
+                      <TableHead className="text-right text-xs w-20">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {isLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-10 text-sm">
+                          Carregando...
+                        </TableCell>
+                      </TableRow>
+                    ) : filteredSales.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-10 text-muted-foreground text-sm">
+                          Nenhuma venda encontrada para o período selecionado
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredSales.map((sale) => (
+                        <TableRow key={sale.id}>
+                          <TableCell className="font-medium text-xs min-w-0 truncate">{sale.invoice_number}</TableCell>
+                          <TableCell className="text-xs min-w-0">
+                            <div className="max-w-[120px] min-w-0">
+                              <div className="truncate font-medium">{sale.customer_name}</div>
+                              <div className="truncate text-muted-foreground">{sale.customer_location}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-xs min-w-0">
+                            {sale.items?.length > 0 ? (
+                              <div className="max-w-[150px] min-w-0">
+                                {sale.items.slice(0, 2).map((item, index) => (
+                                  <div key={index} className="truncate">
+                                    {item.quantity}x {item.product_name}
+                                  </div>
+                                ))}
+                                {sale.items.length > 2 && (
+                                  <div className="text-muted-foreground truncate">
+                                    +{sale.items.length - 2} mais
+                                  </div>
+                                )}
+                              </div>
                             ) : (
-                              <>
-                                <Download className="mr-2 h-4 w-4" />
-                                <span>Download PDF</span>
-                              </>
+                              <span className="text-muted-foreground">Sem produtos</span>
                             )}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => editSale(sale)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            <span>Editar</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleDeleteClick(sale)}
-                            className="text-red-600"
-                          >
-                            <Trash className="mr-2 h-4 w-4" />
-                            <span>Excluir</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                          </TableCell>
+                          <TableCell className="text-xs min-w-0 truncate">{formatDateWithTimezone(sale.date)}</TableCell>
+                          <TableCell className="text-right text-xs font-medium min-w-0 truncate">{sale.total.toLocaleString('pt-AO')} AOA</TableCell>
+                          <TableCell className="text-right w-20">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <span className="sr-only">Abrir menu</span>
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="min-w-0">
+                                <DropdownMenuItem 
+                                  onClick={() => downloadPDF(sale)}
+                                  disabled={isPdfDownloading}
+                                  className="min-w-0"
+                                >
+                                  {isPdfDownloading ? (
+                                    <>
+                                      <Loader2 className="mr-2 h-4 w-4 animate-spin flex-shrink-0" />
+                                      <span className="truncate">Gerando PDF...</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Download className="mr-2 h-4 w-4 flex-shrink-0" />
+                                      <span className="truncate">Download PDF</span>
+                                    </>
+                                  )}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => editSale(sale)} className="min-w-0">
+                                  <Edit className="mr-2 h-4 w-4 flex-shrink-0" />
+                                  <span className="truncate">Editar</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleDeleteClick(sale)}
+                                  className="text-red-600 min-w-0"
+                                >
+                                  <Trash className="mr-2 h-4 w-4 flex-shrink-0" />
+                                  <span className="truncate">Excluir</span>
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Dialog para adicionar/editar venda */}
       <Dialog open={isAddSaleDialogOpen} onOpenChange={setIsAddSaleDialogOpen}>
-        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto" style={{ zIndex: 50 }}>
-          <DialogHeader>
-            <DialogTitle>{editingSale ? 'Editar Venda' : 'Registar Nova Venda'}</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="w-[95vw] max-w-[700px] max-h-[95vh] overflow-y-auto" style={{ zIndex: 50 }}>
+          <DialogHeader className="px-1 sm:px-6">
+            <DialogTitle className="text-lg sm:text-xl">{editingSale ? 'Editar Venda' : 'Registar Nova Venda'}</DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">
               {editingSale ? 'Atualize os detalhes da venda' : 'Adicione os detalhes da venda e itens vendidos'}
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          
+          <div className="grid gap-3 sm:gap-4 py-2 sm:py-4 px-1 sm:px-6">
             {/* Informações do Cliente */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:gap-4">
               <div className="space-y-2">
-                <Label htmlFor="customerName">Nome do Cliente</Label>
+                <Label htmlFor="customerName" className="text-xs sm:text-sm">Nome do Cliente</Label>
                 <Input 
                   id="customerName" 
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                   placeholder="Ex: João Silva"
+                  className="text-xs sm:text-sm h-8 sm:h-10"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="customerLocation">Localização</Label>
+                <Label htmlFor="customerLocation" className="text-xs sm:text-sm">Localização</Label>
                 <Input 
                   id="customerLocation" 
                   value={customerLocation}
                   onChange={(e) => setCustomerLocation(e.target.value)}
                   placeholder="Ex: Luanda, Angola"
+                  className="text-xs sm:text-sm h-8 sm:h-10"
                 />
               </div>
             </div>
 
             {/* Data da Venda */}
             <div className="space-y-2">
-              <Label htmlFor="date">Data da Venda</Label>
+              <Label htmlFor="date" className="text-xs sm:text-sm">Data da Venda</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant={"outline"}
-                    className="w-full justify-start text-left font-normal"
+                    className="w-full justify-start text-left font-normal text-xs sm:text-sm h-8 sm:h-10"
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    <CalendarIcon className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                     {date ? format(date, 'dd/MM/yyyy') : <span>Selecione uma data</span>}
                   </Button>
                 </PopoverTrigger>
@@ -1219,8 +1356,8 @@ export default function SalesManager() {
 
             {/* Tipo de entrada de produto */}
             <div className="space-y-2">
-              <Label>Tipo de Entrada de Produto</Label>
-              <div className="flex space-x-4">
+              <Label className="text-xs sm:text-sm">Tipo de Entrada de Produto</Label>
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                 <div className="flex items-center space-x-2">
                   <input 
                     type="radio" 
@@ -1228,8 +1365,9 @@ export default function SalesManager() {
                     name="entryType" 
                     checked={!isManualEntry}
                     onChange={() => setIsManualEntry(false)}
+                    className="scale-75 sm:scale-100"
                   />
-                  <label htmlFor="database">Do Banco de Dados</label>
+                  <label htmlFor="database" className="text-xs sm:text-sm">Do Banco de Dados</label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <input 
@@ -1238,15 +1376,16 @@ export default function SalesManager() {
                     name="entryType" 
                     checked={isManualEntry}
                     onChange={() => setIsManualEntry(true)}
+                    className="scale-75 sm:scale-100"
                   />
-                  <label htmlFor="manual">Entrada Manual</label>
+                  <label htmlFor="manual" className="text-xs sm:text-sm">Entrada Manual</label>
                 </div>
               </div>
             </div>
 
             {/* Adicionar Itens */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
+            <div className="space-y-3 sm:space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div className="text-sm font-medium">Adicionar Item</div>
                 {saleItems.length > 0 && (
                   <div className="text-xs text-muted-foreground">
@@ -1254,52 +1393,59 @@ export default function SalesManager() {
                   </div>
                 )}
               </div>
+              
               {isManualEntry ? (
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 gap-3 sm:gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="productName">Nome do Produto</Label>
+                    <Label htmlFor="productName" className="text-xs sm:text-sm">Nome do Produto</Label>
                     <Input 
                       id="productName" 
                       value={productName}
                       onChange={(e) => setProductName(e.target.value)}
                       placeholder="Ex: Drone DJI Mavic 3"
+                      className="text-xs sm:text-sm h-8 sm:h-10"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="quantity">Quantidade</Label>
-                    <Input 
-                      id="quantity" 
-                      type="number"
-                      min="1"
-                      value={quantity}
-                      onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                    />
+                  <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="quantity" className="text-xs sm:text-sm">Quantidade</Label>
+                      <Input 
+                        id="quantity" 
+                        type="number"
+                        min="1"
+                        value={quantity}
+                        onChange={(e) => setQuantity(e.target.value === '' ? '' : parseInt(e.target.value) || '')}
+                        className="text-xs sm:text-sm h-8 sm:h-10"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="unitPrice" className="text-xs sm:text-sm">Preço (AOA)</Label>
+                      <Input 
+                        id="unitPrice" 
+                        type="number"
+                        min="0"
+                        value={unitPrice}
+                        onChange={(e) => setUnitPrice(e.target.value === '' ? '' : parseFloat(e.target.value) || '')}
+                        className="text-xs sm:text-sm h-8 sm:h-10"
+                      />
+                    </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="unitPrice">Preço Unitário (AOA)</Label>
-                    <Input 
-                      id="unitPrice" 
-                      type="number"
-                      min="0"
-                      value={unitPrice}
-                      onChange={(e) => setUnitPrice(parseFloat(e.target.value) || 0)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="profit">Lucro (AOA)</Label>
+                    <Label htmlFor="profit" className="text-xs sm:text-sm">Lucro (AOA)</Label>
                     <Input 
                       id="profit" 
                       type="number"
                       min="0"
                       value={profit}
-                      onChange={(e) => setProfit(parseFloat(e.target.value) || 0)}
+                      onChange={(e) => setProfit(e.target.value === '' ? '' : parseFloat(e.target.value) || '')}
+                      className="text-xs sm:text-sm h-8 sm:h-10"
                     />
                   </div>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   <div className="space-y-2 relative">
-                    <Label htmlFor="productSearch">Buscar Produto</Label>
+                    <Label htmlFor="productSearch" className="text-xs sm:text-sm">Buscar Produto</Label>
                     <div className="relative">
                       <Input
                         id="productSearch"
@@ -1310,7 +1456,7 @@ export default function SalesManager() {
                           setSelectedDatabaseProduct(null);
                           setSelectedPlan(null);
                         }}
-                        className="w-full pr-10"
+                        className="w-full pr-10 text-xs sm:text-sm h-8 sm:h-10"
                       />
                       {productFilter && (
                         <button
@@ -1322,18 +1468,18 @@ export default function SalesManager() {
                           }}
                           className="absolute inset-y-0 right-0 flex items-center pr-3"
                         >
-                          <X className="h-4 w-4 opacity-70" />
+                          <X className="h-3 w-3 sm:h-4 sm:w-4 opacity-70" />
                         </button>
                       )}
                     </div>
                     
                     {productFilter && filteredProducts.length > 0 && !selectedDatabaseProduct && (
-                      <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                        <div className="max-h-60 overflow-y-auto">
+                      <div className="absolute z-50 mt-1 max-h-48 sm:max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-xs sm:text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                        <div className="max-h-48 sm:max-h-60 overflow-y-auto">
                           {filteredProducts.map((product) => (
                             <div
                               key={product.id}
-                              className="relative cursor-pointer select-none py-2 px-4 hover:bg-slate-100"
+                              className="relative cursor-pointer select-none py-2 px-3 sm:px-4 hover:bg-slate-100 text-xs sm:text-sm"
                               onClick={() => {
                                 setSelectedDatabaseProduct(product.id);
                                 setProductFilter(product.name);
@@ -1352,7 +1498,7 @@ export default function SalesManager() {
                   
                   {selectedDatabaseProduct && (
                     <div className="space-y-2">
-                      <Label htmlFor="planSelect">Plano</Label>
+                      <Label htmlFor="planSelect" className="text-xs sm:text-sm">Plano</Label>
                       <div className="relative">
                         <select
                           id="planSelect"
@@ -1361,7 +1507,7 @@ export default function SalesManager() {
                             console.log('Plano selecionado:', e.target.value);
                             setSelectedPlan(e.target.value);
                           }}
-                          className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                          className="w-full h-8 sm:h-10 rounded-md border border-input bg-background px-3 py-1 sm:py-2 text-xs sm:text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                         >
                           <option value="" disabled>Selecione um plano</option>
                           {products
@@ -1373,170 +1519,287 @@ export default function SalesManager() {
                             ))}
                         </select>
                         <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                          <ChevronDown className="h-4 w-4 opacity-50" />
+                          <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 opacity-50" />
                         </div>
                       </div>
                     </div>
                   )}
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="quantity">Quantidade</Label>
+                      <Label htmlFor="quantity" className="text-xs sm:text-sm">Quantidade</Label>
                       <Input 
                         id="quantity" 
                         type="number"
                         min="1"
                         value={quantity}
-                        onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                        onChange={(e) => setQuantity(e.target.value === '' ? '' : parseInt(e.target.value) || '')}
+                        className="text-xs sm:text-sm h-8 sm:h-10"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="profit">Lucro (AOA)</Label>
+                      <Label htmlFor="profit" className="text-xs sm:text-sm">Lucro (AOA)</Label>
                       <Input 
                         id="profit" 
                         type="number"
                         min="0"
                         value={profit}
-                        onChange={(e) => setProfit(parseFloat(e.target.value) || 0)}
+                        onChange={(e) => setProfit(e.target.value === '' ? '' : parseFloat(e.target.value) || '')}
+                        className="text-xs sm:text-sm h-8 sm:h-10"
                       />
                     </div>
                   </div>
                 </div>
               )}
+              
               <Button 
                 type="button" 
                 onClick={addItemToSale} 
-                className="w-full"
+                className="w-full text-xs sm:text-sm h-8 sm:h-10"
                 disabled={isAddingItem}
+                size="sm"
               >
                 {isAddingItem ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Adicionando...
+                    <Loader2 className="mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                    <span className="hidden sm:inline">Adicionando...</span>
+                    <span className="sm:hidden">Adicionando</span>
                   </>
                 ) : (
                   <>
-                    <Plus className="mr-2 h-4 w-4" /> 
-                    Adicionar Item
+                    <Plus className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" /> 
+                    <span className="hidden sm:inline">Adicionar Item</span>
+                    <span className="sm:hidden">Adicionar</span>
                   </>
                 )}
               </Button>
             </div>
 
-            {/* Tabela de itens com edição */}
+            {/* Lista de itens - Mobile first */}
             {saleItems.length > 0 && (
               <div className="space-y-2">
                 <div className="text-sm font-medium">
                   Itens Adicionados <span className="text-xs font-normal text-muted-foreground">({saleItems.length} {saleItems.length === 1 ? 'item' : 'itens'})</span>
                 </div>
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Produto</TableHead>
-                        <TableHead className="text-right">Qtd</TableHead>
-                        <TableHead className="text-right">Preço Unit.</TableHead>
-                        <TableHead className="text-right">Lucro</TableHead>
-                        <TableHead className="text-right">Total</TableHead>
-                        <TableHead className="text-right">Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {saleItems.map((item) => (
-                        <TableRow key={item.id}>
-                          <TableCell>{item.product_name}</TableCell>
-                          <TableCell className="text-right">{item.quantity}</TableCell>
-                          <TableCell className="text-right">{item.unit_price.toLocaleString('pt-AO')} AOA</TableCell>
-                          <TableCell className="text-right">
+                
+                {/* Mobile View */}
+                <div className="block sm:hidden">
+                  <div className="space-y-2">
+                    {saleItems.map((item, index) => (
+                      <div key={item.id} className="border rounded-lg p-3 bg-gray-50">
+                        <div className="flex justify-between items-start gap-2 mb-2">
+                          <div className="min-w-0 flex-1">
+                            <h4 className="font-medium text-sm truncate">{item.product_name}</h4>
+                            <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground mt-1">
+                              <span>Qtd: {item.quantity}</span>
+                              <span>Preço: {item.unit_price.toLocaleString('pt-AO')} AOA</span>
+                            </div>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <div className="text-sm font-bold">{item.total_price.toLocaleString('pt-AO')} AOA</div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <span className="text-xs text-muted-foreground">Lucro:</span>
                             {editingItem?.id === item.id ? (
                               <Input
                                 type="number"
                                 min="0"
                                 value={editingProfit}
                                 onChange={(e) => setEditingProfit(parseFloat(e.target.value) || 0)}
-                                className="w-24"
+                                className="h-6 text-xs w-20"
                               />
                             ) : (
-                              item.profit?.toLocaleString('pt-AO') || '0'
-                            )} AOA
-                          </TableCell>
-                          <TableCell className="text-right">{item.total_price.toLocaleString('pt-AO')} AOA</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              {editingItem?.id === item.id ? (
-                                <>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={saveItemEdit}
-                                    className="h-8 w-8 p-0 text-green-600"
-                                  >
-                                    <Check className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      setEditingItem(null);
-                                      setEditingProfit(0);
-                                    }}
-                                    className="h-8 w-8 p-0 text-red-600"
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </Button>
-                                </>
-                              ) : (
-                                <>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => editItem(item)}
-                                    className="h-8 w-8 p-0"
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => removeItem(item.id)}
-                                    className="h-8 w-8 p-0 text-red-600"
-                                  >
-                                    <Trash className="h-4 w-4" />
-                                  </Button>
-                                </>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      <TableRow>
-                        <TableCell colSpan={3} className="text-right font-bold">Total:</TableCell>
-                        <TableCell className="text-right font-bold">
-                          {saleItems.reduce((acc, item) => acc + (item.profit || 0), 0).toLocaleString('pt-AO')} AOA
-                        </TableCell>
-                        <TableCell className="text-right font-bold">
+                              <span className="text-xs font-medium">{item.profit?.toLocaleString('pt-AO') || '0'} AOA</span>
+                            )}
+                          </div>
+                          
+                          <div className="flex gap-1">
+                            {editingItem?.id === item.id ? (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={saveItemEdit}
+                                  className="h-6 w-6 p-0 text-green-600"
+                                >
+                                  <Check className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    setEditingItem(null);
+                                    setEditingProfit(0);
+                                  }}
+                                  className="h-6 w-6 p-0 text-red-600"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </>
+                            ) : (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => editItem(item)}
+                                  className="h-6 w-6 p-0"
+                                >
+                                  <Edit className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeItem(item.id)}
+                                  className="h-6 w-6 p-0 text-red-600"
+                                >
+                                  <Trash className="h-3 w-3" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {/* Total Mobile */}
+                    <div className="border rounded-lg p-3 bg-blue-50 border-blue-200">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <div className="font-bold text-sm">Total Geral</div>
+                          <div className="text-xs text-muted-foreground">
+                            Lucro: {saleItems.reduce((acc, item) => acc + (item.profit || 0), 0).toLocaleString('pt-AO')} AOA
+                          </div>
+                        </div>
+                        <div className="text-lg font-bold text-blue-600">
                           {totalAmount.toLocaleString('pt-AO')} AOA
-                        </TableCell>
-                        <TableCell></TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Desktop View */}
+                <div className="hidden sm:block">
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-xs">Produto</TableHead>
+                          <TableHead className="text-right text-xs">Qtd</TableHead>
+                          <TableHead className="text-right text-xs">Preço Unit.</TableHead>
+                          <TableHead className="text-right text-xs">Lucro</TableHead>
+                          <TableHead className="text-right text-xs">Total</TableHead>
+                          <TableHead className="text-right text-xs">Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {saleItems.map((item) => (
+                          <TableRow key={item.id}>
+                            <TableCell className="text-xs">{item.product_name}</TableCell>
+                            <TableCell className="text-right text-xs">{item.quantity}</TableCell>
+                            <TableCell className="text-right text-xs">{item.unit_price.toLocaleString('pt-AO')} AOA</TableCell>
+                            <TableCell className="text-right text-xs">
+                              {editingItem?.id === item.id ? (
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  value={editingProfit}
+                                  onChange={(e) => setEditingProfit(parseFloat(e.target.value) || 0)}
+                                  className="w-24 h-8 text-xs"
+                                />
+                              ) : (
+                                item.profit?.toLocaleString('pt-AO') || '0'
+                              )} AOA
+                            </TableCell>
+                            <TableCell className="text-right text-xs">{item.total_price.toLocaleString('pt-AO')} AOA</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                {editingItem?.id === item.id ? (
+                                  <>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={saveItemEdit}
+                                      className="h-8 w-8 p-0 text-green-600"
+                                    >
+                                      <Check className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        setEditingItem(null);
+                                        setEditingProfit(0);
+                                      }}
+                                      className="h-8 w-8 p-0 text-red-600"
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => editItem(item)}
+                                      className="h-8 w-8 p-0"
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => removeItem(item.id)}
+                                      className="h-8 w-8 p-0 text-red-600"
+                                    >
+                                      <Trash className="h-4 w-4" />
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        <TableRow>
+                          <TableCell colSpan={3} className="text-right font-bold text-xs">Total:</TableCell>
+                          <TableCell className="text-right font-bold text-xs">
+                            {saleItems.reduce((acc, item) => acc + (item.profit || 0), 0).toLocaleString('pt-AO')} AOA
+                          </TableCell>
+                          <TableCell className="text-right font-bold text-xs">
+                            {totalAmount.toLocaleString('pt-AO')} AOA
+                          </TableCell>
+                          <TableCell></TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
               </div>
             )}
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setIsAddSaleDialogOpen(false);
-              clearForm();
-              setEditingSale(null);
-            }}>
+          
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0 px-1 sm:px-6">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsAddSaleDialogOpen(false);
+                clearForm();
+                setEditingSale(null);
+              }}
+              className="w-full sm:w-auto text-xs sm:text-sm h-8 sm:h-10"
+              size="sm"
+            >
               Cancelar
             </Button>
             <Button 
               type="button" 
               onClick={handleSaveSale}
               disabled={saleItems.length === 0 || !customerName || !customerLocation || !date}
+              className="w-full sm:w-auto text-xs sm:text-sm h-8 sm:h-10"
+              size="sm"
             >
               {editingSale ? 'Salvar Alterações' : 'Salvar Venda'}
             </Button>

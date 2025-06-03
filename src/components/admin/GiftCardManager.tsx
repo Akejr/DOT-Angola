@@ -247,227 +247,352 @@ export default function GiftCardManager() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-xl font-bold text-[#01042D] flex items-center">
-          <Gift className="w-5 h-5 mr-2" />
-          Gerenciador de Gift Cards
-        </h1>
-        <button
-          onClick={handleAddNew}
-          className="flex items-center px-4 py-2 bg-[#01042D] text-white rounded-xl hover:bg-[#01042D]/90 transition-colors shadow-sm text-sm"
-        >
-          <Plus className="w-4 h-4 mr-1.5" />
-          <span>Novo Gift Card</span>
-        </button>
-      </div>
+    <div className="w-full max-w-full overflow-hidden">
+      <div className="space-y-4 sm:space-y-6">
+        {/* Cabeçalho */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#01042D] flex items-center truncate">
+              <Gift className="w-4 h-4 sm:w-5 sm:h-5 mr-2 flex-shrink-0" />
+              <span className="hidden sm:inline">Gerenciador de Gift Cards</span>
+              <span className="sm:hidden">Gift Cards</span>
+            </h1>
+          </div>
+          <button
+            onClick={handleAddNew}
+            className="flex items-center px-3 sm:px-4 py-2 bg-[#01042D] text-white rounded-xl hover:bg-[#01042D]/90 transition-colors shadow-sm text-xs sm:text-sm w-full sm:w-auto justify-center"
+          >
+            <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 flex-shrink-0" />
+            <span className="hidden sm:inline">Novo Gift Card</span>
+            <span className="sm:hidden">Novo</span>
+          </button>
+        </div>
 
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
-        {/* Barra de Ferramentas */}
-        <div className="p-4 border-b border-gray-100 flex flex-wrap gap-4 items-center">
-          {/* Pesquisa */}
-          <div className="flex-1 min-w-[200px]">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Pesquisar gift cards..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#01042D] focus:border-[#01042D]"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+          {/* Barra de Ferramentas */}
+          <div className="p-3 sm:p-4 border-b border-gray-100">
+            <div className="flex flex-col gap-3 sm:flex-row sm:gap-4 sm:items-center">
+              {/* Pesquisa */}
+              <div className="flex-1 min-w-0">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Pesquisar gift cards..."
+                    className="w-full pl-9 sm:pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#01042D] focus:border-[#01042D] h-8 sm:h-10"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Filtro por Categoria */}
+              <div className="relative w-full sm:w-auto">
+                <select
+                  value={selectedCategory || ''}
+                  onChange={(e) => setSelectedCategory(e.target.value || null)}
+                  className="appearance-none pl-9 pr-8 py-2 border border-gray-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#01042D] focus:border-[#01042D] bg-white w-full sm:w-auto h-8 sm:h-10"
+                >
+                  <option value="">Todas as categorias</option>
+                  {categories.map(category => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
+              </div>
             </div>
           </div>
 
-          {/* Filtro por Categoria */}
-          <div className="relative">
-            <select
-              value={selectedCategory || ''}
-              onChange={(e) => setSelectedCategory(e.target.value || null)}
-              className="appearance-none pl-9 pr-8 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#01042D] focus:border-[#01042D] bg-white"
-            >
-              <option value="">Todas as categorias</option>
-              {categories.map(category => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          </div>
-        </div>
-
-        {/* Lista de Gift Cards */}
-        {filteredAndSortedGiftCards.length === 0 ? (
-          <div className="text-center py-12">
-            <Gift className="mx-auto h-12 w-12 text-gray-300" />
-            <h3 className="mt-4 text-base font-medium text-gray-900">Nenhum gift card encontrado</h3>
-            <p className="mt-2 text-sm text-gray-500 max-w-md mx-auto">
-              {searchTerm || selectedCategory
-                ? 'Nenhum gift card corresponde aos filtros aplicados.'
-                : 'Comece adicionando um novo gift card clicando no botão acima.'}
-            </p>
-            {(searchTerm || selectedCategory) && (
-              <button
-                onClick={() => {
-                  setSearchTerm('');
-                  setSelectedCategory(null);
-                }}
-                className="mt-4 text-sm text-[#01042D] hover:text-[#01042D]/80"
-              >
-                Limpar filtros
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-6 p-6">
-            {filteredAndSortedGiftCards.map((giftCard) => (
-              <div key={giftCard.id} className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-                <div className="flex items-start gap-6 p-6">
-                  <div className="w-32 h-32 rounded-xl bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
-                    {giftCard.image_url ? (
-                      <img 
-                        src={giftCard.image_url} 
-                        alt={giftCard.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <Gift className="w-12 h-12 text-gray-400" />
-                    )}
+          {/* Lista de Gift Cards */}
+          {filteredAndSortedGiftCards.length === 0 ? (
+            <div className="text-center py-8 sm:py-12 px-4">
+              <Gift className="mx-auto h-8 w-8 sm:h-12 sm:w-12 text-gray-300" />
+              <h3 className="mt-4 text-sm sm:text-base font-medium text-gray-900">Nenhum gift card encontrado</h3>
+              <p className="mt-2 text-xs sm:text-sm text-gray-500 max-w-md mx-auto">
+                {searchTerm || selectedCategory
+                  ? 'Nenhum gift card corresponde aos filtros aplicados.'
+                  : 'Comece adicionando um novo gift card clicando no botão acima.'}
+              </p>
+              {(searchTerm || selectedCategory) && (
+                <button
+                  onClick={() => {
+                    setSearchTerm('');
+                    setSelectedCategory(null);
+                  }}
+                  className="mt-4 text-xs sm:text-sm text-[#01042D] hover:text-[#01042D]/80"
+                >
+                  Limpar filtros
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 sm:gap-6 p-3 sm:p-6">
+              {filteredAndSortedGiftCards.map((giftCard) => (
+                <div key={giftCard.id} className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                  {/* Mobile Layout */}
+                  <div className="block sm:hidden">
+                    <div className="p-4 space-y-3">
+                      <div className="flex items-start gap-3">
+                        <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                          {giftCard.image_url ? (
+                            <img 
+                              src={giftCard.image_url} 
+                              alt={giftCard.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <Gift className="w-6 h-6 text-gray-400" />
+                          )}
+                        </div>
+                        
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-sm font-semibold text-[#01042D] truncate">
+                            {giftCard.name}
+                          </h3>
+                          {giftCard.description && (
+                            <p className="mt-1 text-xs text-gray-600 line-clamp-2">
+                              {giftCard.description}
+                            </p>
+                          )}
+                          
+                          <div className="mt-2 flex items-center gap-2">
+                            <Package className="w-3 h-3 text-[#01042D] flex-shrink-0" />
+                            <span className="text-xs font-medium text-gray-700 truncate">
+                              {getDeliveryMethodLabel(giftCard.delivery_method || 'code')}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-col gap-1 flex-shrink-0">
+                          <button
+                            onClick={() => handleEdit(giftCard)}
+                            className="p-2 text-gray-500 hover:text-[#01042D] rounded-lg hover:bg-gray-100 transition-colors"
+                            title="Editar"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(giftCard.id)}
+                            className="p-2 text-gray-500 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                            disabled={isDeleting && deleteId === giftCard.id}
+                            title="Excluir"
+                          >
+                            {isDeleting && deleteId === giftCard.id ? (
+                              <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
+                          </button>
+                          <a
+                            href={`/gift-card/${giftCard.slug || giftCard.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 text-gray-500 hover:text-[#01042D] rounded-lg hover:bg-gray-100 transition-colors"
+                            title="Ver na loja"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-wrap items-center gap-2">
+                        {giftCard.is_featured && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700">
+                            Destaque
+                          </span>
+                        )}
+                        
+                        {giftCard.gift_card_categories?.map(gc => gc.categories).map(category => (
+                          category && (
+                            <span 
+                              key={category.id}
+                              className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-[#01042D]/5 text-[#01042D]"
+                            >
+                              <Tag className="w-3 h-3 mr-1" />
+                              {category.name}
+                            </span>
+                          )
+                        ))}
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2">
+                        {giftCard.plans?.slice(0, 4).map((plan, index) => (
+                          <div 
+                            key={index}
+                            className="flex items-center gap-2 px-2 py-1.5 bg-gray-50 rounded-lg"
+                          >
+                            <BanknoteIcon className="w-3 h-3 text-[#01042D] flex-shrink-0" />
+                            <div className="min-w-0 flex-1">
+                              <div className="text-xs font-medium text-gray-900 truncate">
+                                {plan.name}
+                              </div>
+                              <div className="text-xs text-gray-600 truncate">
+                                {plan.price} {plan.currency}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                        {giftCard.plans && giftCard.plans.length > 4 && (
+                          <div className="flex items-center justify-center px-2 py-1.5 bg-gray-50 rounded-lg text-xs text-gray-600">
+                            +{giftCard.plans.length - 4} mais
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <h3 className="text-lg font-semibold text-[#01042D] truncate">
-                          {giftCard.name}
-                        </h3>
-                        {giftCard.description && (
-                          <p className="mt-1 text-sm text-gray-600 line-clamp-2">
-                            {giftCard.description}
-                          </p>
+
+                  {/* Desktop Layout */}
+                  <div className="hidden sm:block">
+                    <div className="flex items-start gap-6 p-6">
+                      <div className="w-32 h-32 rounded-xl bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                        {giftCard.image_url ? (
+                          <img 
+                            src={giftCard.image_url} 
+                            alt={giftCard.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <Gift className="w-12 h-12 text-gray-400" />
                         )}
                       </div>
                       
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleEdit(giftCard)}
-                          className="p-2 text-gray-500 hover:text-[#01042D] rounded-lg hover:bg-gray-100 transition-colors"
-                          title="Editar"
-                        >
-                          <Edit className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(giftCard.id)}
-                          className="p-2 text-gray-500 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
-                          disabled={isDeleting && deleteId === giftCard.id}
-                          title="Excluir"
-                        >
-                          {isDeleting && deleteId === giftCard.id ? (
-                            <div className="w-5 h-5 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-                          ) : (
-                            <Trash2 className="w-5 h-5" />
-                          )}
-                        </button>
-                        <a
-                          href={`/gift-card/${giftCard.slug || giftCard.id}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2 text-gray-500 hover:text-[#01042D] rounded-lg hover:bg-gray-100 transition-colors"
-                          title="Ver na loja"
-                        >
-                          <ExternalLink className="w-5 h-5" />
-                        </a>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-4 flex flex-wrap items-center gap-4">
-                      <div className="flex items-center gap-2">
-                        <Package className="w-4 h-4 text-[#01042D]" />
-                        <span className="text-sm font-medium text-gray-700">
-                          {getDeliveryMethodLabel(giftCard.delivery_method || 'code')}
-                        </span>
-                      </div>
-                      
-                      {giftCard.is_featured && (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700">
-                          Destaque
-                        </span>
-                      )}
-                      
-                      {giftCard.gift_card_categories?.map(gc => gc.categories).map(category => (
-                        category && (
-                          <span 
-                            key={category.id}
-                            className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-[#01042D]/5 text-[#01042D]"
-                          >
-                            <Tag className="w-3 h-3 mr-1" />
-                            {category.name}
-                          </span>
-                        )
-                      ))}
-                    </div>
-                    
-                    <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                      {giftCard.plans?.map((plan, index) => (
-                        <div 
-                          key={index}
-                          className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg"
-                        >
-                          <BanknoteIcon className="w-4 h-4 text-[#01042D]" />
-                          <div className="min-w-0">
-                            <div className="text-sm font-medium text-gray-900 truncate">
-                              {plan.name}
-                            </div>
-                            <div className="text-xs text-gray-600">
-                              {plan.price} {plan.currency}
-                            </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <h3 className="text-lg font-semibold text-[#01042D] truncate">
+                              {giftCard.name}
+                            </h3>
+                            {giftCard.description && (
+                              <p className="mt-1 text-sm text-gray-600 line-clamp-2">
+                                {giftCard.description}
+                              </p>
+                            )}
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleEdit(giftCard)}
+                              className="p-2 text-gray-500 hover:text-[#01042D] rounded-lg hover:bg-gray-100 transition-colors"
+                              title="Editar"
+                            >
+                              <Edit className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(giftCard.id)}
+                              className="p-2 text-gray-500 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                              disabled={isDeleting && deleteId === giftCard.id}
+                              title="Excluir"
+                            >
+                              {isDeleting && deleteId === giftCard.id ? (
+                                <div className="w-5 h-5 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                              ) : (
+                                <Trash2 className="w-5 h-5" />
+                              )}
+                            </button>
+                            <a
+                              href={`/gift-card/${giftCard.slug || giftCard.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-2 text-gray-500 hover:text-[#01042D] rounded-lg hover:bg-gray-100 transition-colors"
+                              title="Ver na loja"
+                            >
+                              <ExternalLink className="w-5 h-5" />
+                            </a>
                           </div>
                         </div>
-                      ))}
+                        
+                        <div className="mt-4 flex flex-wrap items-center gap-4">
+                          <div className="flex items-center gap-2">
+                            <Package className="w-4 h-4 text-[#01042D]" />
+                            <span className="text-sm font-medium text-gray-700">
+                              {getDeliveryMethodLabel(giftCard.delivery_method || 'code')}
+                            </span>
+                          </div>
+                          
+                          {giftCard.is_featured && (
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700">
+                              Destaque
+                            </span>
+                          )}
+                          
+                          {giftCard.gift_card_categories?.map(gc => gc.categories).map(category => (
+                            category && (
+                              <span 
+                                key={category.id}
+                                className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-[#01042D]/5 text-[#01042D]"
+                              >
+                                <Tag className="w-3 h-3 mr-1" />
+                                {category.name}
+                              </span>
+                            )
+                          ))}
+                        </div>
+                        
+                        <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                          {giftCard.plans?.map((plan, index) => (
+                            <div 
+                              key={index}
+                              className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg"
+                            >
+                              <BanknoteIcon className="w-4 h-4 text-[#01042D]" />
+                              <div className="min-w-0">
+                                <div className="text-sm font-medium text-gray-900 truncate">
+                                  {plan.name}
+                                </div>
+                                <div className="text-xs text-gray-600">
+                                  {plan.price} {plan.currency}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+              ))}
+            </div>
+          )}
+        </div>
 
-      {/* Modal de Formulário */}
-      {showModal && (
-        <div className="fixed inset-0 overflow-y-auto z-50">
-          <div className="flex items-center justify-center min-h-screen p-4">
-            <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm" onClick={closeModal}></div>
-            <div className="relative bg-white rounded-2xl max-w-5xl w-full shadow-xl overflow-hidden">
-              <div className="p-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
-                <h2 className="text-lg font-semibold text-[#01042D] flex items-center">
-                  <Gift className="w-5 h-5 mr-2" />
-                  {currentGiftCard ? 'Editar Gift Card' : 'Novo Gift Card'}
-                </h2>
-                <button 
-                  onClick={closeModal}
-                  className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <X className="w-5 h-5 text-gray-500" />
-                </button>
-              </div>
-              
-              <div className="p-6">
-                <GiftCardForm
-                  giftCard={currentGiftCard}
-                  categories={categories}
-                  onSubmit={handleSubmit}
-                  onCancel={closeModal}
-                  isSaving={isSaving}
-                  error={error}
-                />
+        {/* Modal de Formulário */}
+        {showModal && (
+          <div className="fixed inset-0 overflow-y-auto z-50">
+            <div className="flex items-center justify-center min-h-screen p-2 sm:p-4">
+              <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm" onClick={closeModal}></div>
+              <div className="relative bg-white rounded-2xl max-w-5xl w-full shadow-xl overflow-hidden mx-2 sm:mx-0">
+                <div className="p-3 sm:p-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+                  <h2 className="text-base sm:text-lg font-semibold text-[#01042D] flex items-center truncate">
+                    <Gift className="w-4 h-4 sm:w-5 sm:h-5 mr-2 flex-shrink-0" />
+                    <span className="hidden sm:inline">{currentGiftCard ? 'Editar Gift Card' : 'Novo Gift Card'}</span>
+                    <span className="sm:hidden">{currentGiftCard ? 'Editar' : 'Novo'}</span>
+                  </h2>
+                  <button 
+                    onClick={closeModal}
+                    className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <X className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
+                  </button>
+                </div>
+                
+                <div className="p-3 sm:p-6">
+                  <GiftCardForm
+                    giftCard={currentGiftCard}
+                    categories={categories}
+                    onSubmit={handleSubmit}
+                    onCancel={closeModal}
+                    isSaving={isSaving}
+                    error={error}
+                  />
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 } 

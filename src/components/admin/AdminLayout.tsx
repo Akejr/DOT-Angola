@@ -1,5 +1,5 @@
-import { ReactNode, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { ReactNode, useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Home, 
   Tag, 
@@ -17,9 +17,13 @@ import {
   Percent,
   Package,
   Receipt,
-  ShoppingCart
+  ShoppingCart,
+  Smartphone,
+  Download
 } from 'lucide-react';
 import { FixSlugsButton } from './FixSlugsButton';
+import { useAuth } from '@/contexts/AuthContext';
+import { usePWA, salesNotificationManager } from '@/lib/pwa';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -27,8 +31,62 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [pwaInfo, setPwaInfo] = useState<any>(null);
+  const [notificationStatus, setNotificationStatus] = useState<string>('');
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
   const location = useLocation();
+  const { requestPermission, showInstallPrompt, getPWAInfo, showNotification } = usePWA();
   
+  useEffect(() => {
+    // Verificar status da PWA
+    const info = getPWAInfo();
+    setPwaInfo(info);
+  }, []);
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/admin/login');
+  };
+
+  const handleNotificationSetup = async () => {
+    try {
+      setNotificationStatus('Configurando...');
+      const result = await requestPermission();
+      
+      if (result.permission === 'granted') {
+        setNotificationStatus('✅ Notificações ativadas!');
+        
+        // Mostrar notificação de teste
+        await showNotification({
+          title: '🎉 Notificações Ativadas!',
+          body: 'Você receberá notificações de vendas e relatórios diários às 20:00',
+          requireInteraction: true
+        });
+        
+        setTimeout(() => setNotificationStatus(''), 3000);
+      } else {
+        setNotificationStatus('❌ Permissão negada');
+        setTimeout(() => setNotificationStatus(''), 3000);
+      }
+    } catch (error) {
+      setNotificationStatus('❌ Erro ao configurar');
+      setTimeout(() => setNotificationStatus(''), 3000);
+    }
+  };
+
+  const handleInstallPWA = async () => {
+    const installed = await showInstallPrompt();
+    if (installed) {
+      const info = getPWAInfo();
+      setPwaInfo(info);
+    }
+  };
+
+  const testNotification = async () => {
+    await salesNotificationManager.testSaleNotification();
+  };
+
   const menuItems = [
     { icon: Home, label: 'Dashboard', path: '/admin' },
     { icon: ShoppingBag, label: 'Gift Cards', path: '/admin/gift-cards' },

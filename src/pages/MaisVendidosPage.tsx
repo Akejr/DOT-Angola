@@ -205,7 +205,7 @@ const MaisVendidosPage = () => {
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-0 sm:p-4">
       <SEO 
         title="Produtos Mais Vendidos"
-        description="Confira os gift cards e produtos mais vendidos da DOT ANGOLA"
+        description="Descubra os gift cards internacionais mais procurados pelos angolanos. Netflix, Spotify, PlayStation, Xbox e muito mais com entrega digital instantânea em Angola."
       />
       
       <div className="max-w-6xl w-full bg-white rounded-none sm:rounded-3xl shadow-xl overflow-hidden">
