@@ -165,13 +165,8 @@ const CheckoutPage: React.FC = () => {
           customer_phone: orderData.phone,
           customer_address: orderData.address,
           customer_email: orderData.email,
-          gift_card_id: orderData.giftCardId,
-          plan_id: orderData.planId,
-          amount: orderData.amount,
-          currency: orderData.currency,
-          amount_kz: orderData.amountKz,
-          status: orderData.status,
-          created_at: new Date().toISOString()
+          total_amount_kz: orderData.amountKz,
+          status: orderData.status
         }]);
 
       if (error) throw error;
