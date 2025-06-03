@@ -113,7 +113,7 @@ export default function CheckoutCartPage() {
     try {
       setSubmitting(true);
       
-      // Criar o pedido principal
+      // Criar um pedido principal que agrupa todos os itens
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert([{
@@ -129,30 +129,6 @@ export default function CheckoutCartPage() {
         .single();
 
       if (orderError) throw orderError;
-
-      // Criar os itens do pedido
-      const orderItems = items.map(item => {
-        const unitPrice = item.selectedPlan ? item.selectedPlan.price : item.giftCard.original_price;
-        const currency = item.selectedPlan ? item.selectedPlan.currency : item.giftCard.currency;
-        const unitPriceKz = unitPrice * (exchangeRates.find(r => r.currency === currency)?.rate || 0);
-        
-        return {
-          order_id: order.id,
-          gift_card_id: item.giftCard.id,
-          plan_id: item.selectedPlan?.id || null,
-          quantity: item.quantity,
-          unit_price: unitPrice,
-          currency: currency,
-          unit_price_kz: unitPriceKz,
-          total_price_kz: unitPriceKz * item.quantity
-        };
-      });
-
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
-
-      if (itemsError) throw itemsError;
       
       setOrderCreated(true);
       clearCart();

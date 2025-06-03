@@ -2,24 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Package, User, Phone, MapPin, Mail, Calendar, DollarSign, Eye, CheckCircle, Clock, AlertCircle, Search, Filter, Trash2, ShoppingBag } from 'lucide-react';
 
-interface OrderItem {
-  id: string;
-  gift_card_id: number;
-  plan_id?: string;
-  quantity: number;
-  unit_price: number;
-  currency: string;
-  unit_price_kz: number;
-  total_price_kz: number;
-  gift_card?: {
-    name: string;
-    image_url?: string;
-  };
-  plan?: {
-    name: string;
-  };
-}
-
 interface Order {
   id: string;
   order_number: string;
@@ -30,7 +12,6 @@ interface Order {
   total_amount_kz: number;
   status: 'pending' | 'completed';
   created_at: string;
-  order_items?: OrderItem[];
 }
 
 const OrdersPage: React.FC = () => {
@@ -50,14 +31,7 @@ const OrdersPage: React.FC = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('orders')
-        .select(`
-          *,
-          order_items(
-            *,
-            gift_card:gift_cards(name, image_url),
-            plan:gift_card_plans(name)
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -129,10 +103,7 @@ const OrdersPage: React.FC = () => {
     const matchesSearch = 
       order.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customer_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.order_items?.some(item => 
-        item.gift_card?.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      order.customer_email.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     
@@ -258,9 +229,6 @@ const OrdersPage: React.FC = () => {
                     <p className="text-sm font-medium text-gray-900 mb-1">
                       {order.customer_name}
                     </p>
-                    <p className="text-xs text-gray-500 mb-2">
-                      {order.order_items?.length || 0} {order.order_items?.length === 1 ? 'item' : 'itens'}
-                    </p>
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-green-600">
                         {formatCurrency(order.total_amount_kz)} Kz
@@ -324,48 +292,6 @@ const OrdersPage: React.FC = () => {
                     <MapPin className="w-4 h-4 text-gray-400 mr-2 mt-0.5" />
                     <span className="text-gray-600">{selectedOrder.customer_address}</span>
                   </div>
-                </div>
-              </div>
-
-              {/* Itens do Pedido */}
-              <div>
-                <h3 className="text-sm font-medium text-gray-900 mb-3">Itens do Pedido</h3>
-                <div className="space-y-3">
-                  {selectedOrder.order_items?.map((item) => (
-                    <div key={item.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-                      <div className="w-12 h-12 rounded-lg bg-gray-200 overflow-hidden flex-shrink-0">
-                        {item.gift_card?.image_url ? (
-                          <img 
-                            src={item.gift_card.image_url} 
-                            alt={item.gift_card.name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <ShoppingBag className="w-6 h-6 text-gray-400" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {item.gift_card?.name}
-                        </p>
-                        {item.plan && (
-                          <p className="text-xs text-blue-600 mb-1">
-                            Plano: {item.plan.name}
-                          </p>
-                        )}
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-500">
-                            Qtd: {item.quantity} × {formatCurrency(item.unit_price_kz)} Kz
-                          </span>
-                          <span className="text-sm font-medium text-gray-900">
-                            {formatCurrency(item.total_price_kz)} Kz
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
                 </div>
               </div>
 
