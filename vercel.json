@@ -6,8 +6,43 @@
       "permanent": true
     },
     {
-      "source": "/collections/videogame",
-      "destination": "/",
+      "source": "/products/playstation-plus",
+      "destination": "/gift-card/playstation-plus",
+      "permanent": true
+    },
+    {
+      "source": "/products/spotify",
+      "destination": "/gift-card/spotify",
+      "permanent": true
+    },
+    {
+      "source": "/products/spotify",
+      "destination": "/gift-card/spotify",
+      "permanent": true
+    },
+    {
+      "source": "/products/microsoft-windows-11-pro",
+      "destination": "/gift-card/windows-11",
+      "permanent": true
+    },
+    {
+      "source": "/products/xbox-game-pass",
+      "destination": "/gift-card/xbox-game-pass",
+      "permanent": true
+    },
+    {
+      "source": "/products/v-bucks-fortnite",
+      "destination": "/gift-card/fortnite-v-bucks",
+      "permanent": true
+    },
+    {
+      "source": "/products/hbo-max",
+      "destination": "/gift-card/hbo-max",
+      "permanent": true
+    },
+    {
+      "source": "/products/globo-play",
+      "destination": "/gift-card/globo-play",
       "permanent": true
     },
     {
