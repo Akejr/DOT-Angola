@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { FixSlugsButton } from './FixSlugsButton';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePWA, salesNotificationManager } from '@/lib/pwa';
+import { usePWA } from '@/lib/pwa';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -32,11 +32,10 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [pwaInfo, setPwaInfo] = useState<any>(null);
-  const [notificationStatus, setNotificationStatus] = useState<string>('');
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { requestPermission, showInstallPrompt, getPWAInfo, showNotification } = usePWA();
+  const { showInstallPrompt, getPWAInfo } = usePWA();
   
   useEffect(() => {
     // Verificar status da PWA
@@ -49,45 +48,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     navigate('/admin/login');
   };
 
-  const handleNotificationSetup = async () => {
-    try {
-      setNotificationStatus('Configurando...');
-      const result = await requestPermission();
-      
-      if (result.permission === 'granted') {
-        setNotificationStatus('✅ Notificações ativadas!');
-        
-        // Mostrar notificação de teste
-        await showNotification({
-          title: '🎉 Notificações Ativadas!',
-          body: 'Você receberá notificações de vendas e relatórios diários às 20:00',
-          requireInteraction: true
-        });
-        
-        setTimeout(() => setNotificationStatus(''), 3000);
-      } else if (result.permission === 'unsupported') {
-        setNotificationStatus('⚠️ Não suportado neste navegador');
-        setTimeout(() => setNotificationStatus(''), 5000);
-      } else {
-        setNotificationStatus('❌ Permissão negada');
-        setTimeout(() => setNotificationStatus(''), 3000);
-      }
-    } catch (error) {
-      setNotificationStatus('❌ Erro ao configurar');
-      setTimeout(() => setNotificationStatus(''), 3000);
-    }
-  };
-
   const handleInstallPWA = async () => {
     const installed = await showInstallPrompt();
     if (installed) {
       const info = getPWAInfo();
       setPwaInfo(info);
     }
-  };
-
-  const testNotification = async () => {
-    await salesNotificationManager.testSaleNotification();
   };
 
   const menuItems = [
@@ -102,7 +68,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { icon: Package, label: 'Pedidos de Importação', path: '/admin/import-requests' },
     { icon: Bell, label: 'Notificações', path: '/admin/notifications' },
     { icon: Settings, label: 'Configurações', path: '/admin/settings' },
-    { icon: Smartphone, label: 'PWA', path: '/admin/pwa' },
   ];
   
   const isActive = (path: string) => {
@@ -172,29 +137,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   Instalar App
                 </button>
               )}
-              
-              <button
-                onClick={handleNotificationSetup}
-                className="w-full flex items-center gap-2 px-3 py-2 text-xs bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors"
-              >
-                <Bell className="h-4 w-4" />
-                {pwaInfo?.notificationPermission === 'granted' ? 'Notificações Ativas' : 'Ativar Notificações'}
-              </button>
-              
-              {process.env.NODE_ENV === 'development' && (
-                <button
-                  onClick={testNotification}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-xs bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-colors"
-                >
-                  🧪 Teste Cross-Device
-                </button>
-              )}
-              
-              {notificationStatus && (
-                <div className="p-2 text-xs text-center bg-gray-50 rounded-lg">
-                  {notificationStatus}
-                </div>
-              )}
             </div>
           </div>
           
@@ -263,29 +205,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 <Download className="h-4 w-4" />
                 Instalar App
               </button>
-            )}
-            
-            <button
-              onClick={handleNotificationSetup}
-              className="w-full flex items-center gap-2 px-3 py-2 text-xs bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors"
-            >
-              <Bell className="h-4 w-4" />
-              {pwaInfo?.notificationPermission === 'granted' ? 'Notificações Ativas' : 'Ativar Notificações'}
-            </button>
-            
-            {process.env.NODE_ENV === 'development' && (
-              <button
-                onClick={testNotification}
-                className="w-full flex items-center gap-2 px-3 py-2 text-xs bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-colors"
-              >
-                🧪 Teste Cross-Device
-              </button>
-            )}
-            
-            {notificationStatus && (
-              <div className="p-2 text-xs text-center bg-gray-50 rounded-lg">
-                {notificationStatus}
-              </div>
             )}
           </div>
         </div>

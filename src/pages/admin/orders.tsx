@@ -2,6 +2,28 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Package, User, Phone, MapPin, Mail, Calendar, DollarSign, Eye, CheckCircle, Clock, AlertCircle, Search, Filter, Trash2, ShoppingBag } from 'lucide-react';
 
+interface OrderItem {
+  id: string;
+  gift_card_id: number;
+  plan_id: string | null;
+  quantity: number;
+  unit_price: number;
+  currency: string;
+  unit_price_kz: number;
+  total_price_kz: number;
+  gift_cards?: {
+    id: number;
+    name: string;
+    image_url?: string;
+  };
+  gift_card_plans?: {
+    id: string;
+    name: string;
+    price: number;
+    currency: string;
+  };
+}
+
 interface Order {
   id: string;
   order_number: string;
@@ -12,6 +34,7 @@ interface Order {
   total_amount_kz: number;
   status: 'pending' | 'completed';
   created_at: string;
+  order_items?: OrderItem[];
 }
 
 const OrdersPage: React.FC = () => {
@@ -29,15 +52,99 @@ const OrdersPage: React.FC = () => {
   const loadOrders = async () => {
     try {
       setLoading(true);
+      console.log('🔍 Iniciando carregamento de pedidos...');
+      
+      // Query completa com JOINs para buscar nomes dos produtos
       const { data, error } = await supabase
         .from('orders')
-        .select('*')
+        .select(`
+          *,
+          order_items (
+            id,
+            gift_card_id,
+            plan_id,
+            quantity,
+            unit_price,
+            currency,
+            unit_price_kz,
+            total_price_kz,
+            gift_cards (
+              id,
+              name,
+              image_url
+            ),
+            gift_card_plans (
+              id,
+              name,
+              price,
+              currency
+            )
+          )
+        `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      console.log('📊 Resultado da consulta completa:', { data, error, count: data?.length });
+
+      if (error) {
+        console.error('❌ Erro na consulta completa:', error);
+        
+        // Fallback para query simples com order_items
+        console.log('🔄 Tentando query com order_items básico...');
+        const { data: basicData, error: basicError } = await supabase
+          .from('orders')
+          .select(`
+            *,
+            order_items (
+              id,
+              gift_card_id,
+              plan_id,
+              quantity,
+              unit_price,
+              currency,
+              unit_price_kz,
+              total_price_kz
+            )
+          `)
+          .order('created_at', { ascending: false });
+          
+        if (basicError) {
+          console.error('❌ Erro na query básica:', basicError);
+          
+          // Último fallback - só orders
+          console.log('🔄 Último fallback - só orders...');
+          const { data: ordersOnly, error: ordersError } = await supabase
+            .from('orders')
+            .select('*')
+            .order('created_at', { ascending: false });
+            
+          if (ordersError) {
+            throw ordersError;
+          }
+          
+          console.log('✅ Fallback final funcionou:', ordersOnly?.length);
+          setOrders(ordersOnly || []);
+          return;
+        }
+        
+        console.log('✅ Query básica funcionou:', basicData?.length);
+        setOrders(basicData || []);
+        return;
+      }
+
+      console.log(`✅ ${data?.length || 0} pedidos carregados com dados completos`);
+      
+      // Log detalhado dos dados para debug
+      if (data && data.length > 0) {
+        console.log('📦 Primeiro pedido completo:', data[0]);
+        if (data[0].order_items && data[0].order_items.length > 0) {
+          console.log('📦 Primeiro item com gift_card:', data[0].order_items[0]);
+        }
+      }
+      
       setOrders(data || []);
     } catch (error) {
-      console.error('Erro ao carregar pedidos:', error);
+      console.error('❌ Erro ao carregar pedidos:', error);
+      setOrders([]);
     } finally {
       setLoading(false);
     }
@@ -103,7 +210,10 @@ const OrdersPage: React.FC = () => {
     const matchesSearch = 
       order.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customer_email.toLowerCase().includes(searchTerm.toLowerCase());
+      order.customer_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (order.order_items?.some(item => 
+        item.gift_cards?.name.toLowerCase().includes(searchTerm.toLowerCase())
+      ) || false);
     
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     
@@ -229,6 +339,16 @@ const OrdersPage: React.FC = () => {
                     <p className="text-sm font-medium text-gray-900 mb-1">
                       {order.customer_name}
                     </p>
+                    {order.order_items && order.order_items.length > 0 && (
+                      <p className="text-xs text-gray-500 mb-1">
+                        {order.order_items.length === 1 
+                          ? `${order.order_items[0].gift_cards?.name || `Gift Card #${order.order_items[0].gift_card_id}`}`
+                          : `${order.order_items.length} produtos diferentes`
+                        }
+                        {' • '}
+                        {order.order_items.reduce((sum, item) => sum + item.quantity, 0)} itens total
+                      </p>
+                    )}
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-green-600">
                         {formatCurrency(order.total_amount_kz)} Kz
@@ -295,6 +415,59 @@ const OrdersPage: React.FC = () => {
                 </div>
               </div>
 
+              {/* Produtos Comprados */}
+              <div>
+                <h3 className="text-sm font-medium text-gray-900 mb-3">Produtos Comprados</h3>
+                {selectedOrder.order_items && selectedOrder.order_items.length > 0 ? (
+                  <div className="space-y-3">
+                    {selectedOrder.order_items.map((item) => (
+                      <div key={item.id} className="border border-gray-200 rounded-lg p-3">
+                        <div className="flex items-start space-x-3">
+                          {item.gift_cards?.image_url && (
+                            <img 
+                              src={item.gift_cards.image_url} 
+                              alt={item.gift_cards.name}
+                              className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+                            />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-sm font-medium text-gray-900">
+                              {item.gift_cards?.name || `Gift Card #${item.gift_card_id}`}
+                            </h4>
+                            {item.gift_card_plans && (
+                              <p className="text-xs text-gray-500 mt-1">
+                                Plano: {item.gift_card_plans.name} • {formatCurrency(item.gift_card_plans.price)} {item.gift_card_plans.currency}
+                              </p>
+                            )}
+                            <div className="flex items-center justify-between mt-2">
+                              <div className="flex items-center space-x-2 text-xs text-gray-600">
+                                <span>Qtd: {item.quantity}</span>
+                                <span>•</span>
+                                <span>{formatCurrency(item.unit_price_kz)} Kz cada</span>
+                                {item.currency !== 'KWZ' && (
+                                  <>
+                                    <span>•</span>
+                                    <span>({formatCurrency(item.unit_price)} {item.currency})</span>
+                                  </>
+                                )}
+                              </div>
+                              <span className="text-sm font-medium text-gray-900">
+                                {formatCurrency(item.total_price_kz)} Kz
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-4 text-gray-500 bg-gray-50 rounded-lg">
+                    <ShoppingBag className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                    <p className="text-sm">Nenhum item encontrado neste pedido</p>
+                  </div>
+                )}
+              </div>
+
               {/* Informações do Pedido */}
               <div>
                 <h3 className="text-sm font-medium text-gray-900 mb-3">Informações do Pedido</h3>
@@ -306,6 +479,12 @@ const OrdersPage: React.FC = () => {
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-600">Data do Pedido:</span>
                     <span className="text-gray-900">{formatDate(selectedOrder.created_at)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Total de Itens:</span>
+                    <span className="text-gray-900">
+                      {selectedOrder.order_items?.reduce((sum, item) => sum + item.quantity, 0) || 0}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-600">Status:</span>

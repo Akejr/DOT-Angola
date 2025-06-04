@@ -30,7 +30,6 @@ import { HelmetProvider } from 'react-helmet-async';
 import SEO from '@/components/SEO';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { trackPageViewAutomatic } from '@/lib/analytics-tracker';
-import { salesNotificationManager } from '@/lib/pwa';
 import { useEffect } from 'react';
 
 const queryClient = new QueryClient();
@@ -39,17 +38,6 @@ export default function App() {
   useEffect(() => {
     // Inicializar rastreamento automático de páginas
     trackPageViewAutomatic();
-    
-    // Inicializar sistema de notificações PWA
-    salesNotificationManager.setupNotifications().then((result) => {
-      if (result.permission === 'granted') {
-        console.log('✅ PWA: Notificações configuradas com sucesso');
-      } else {
-        console.log('ℹ️ PWA: Notificações não foram autorizadas pelo usuário');
-      }
-    }).catch((error) => {
-      console.error('❌ PWA: Erro ao configurar notificações:', error);
-    });
   }, []);
 
   return (
