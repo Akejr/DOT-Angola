@@ -46,6 +46,46 @@
       "permanent": true
     },
     {
+      "source": "/products/adobe-photoshop-elements-2023",
+      "destination": "/gift-card/adobe-photoshop-elements-2025",
+      "permanent": true
+    },
+    {
+      "source": "/products/windows-server-2022",
+      "destination": "/gift-card/windows-server-2025",
+      "permanent": true
+    },
+    {
+      "source": "/products/vmware-workstation-17-pro",
+      "destination": "/gift-card/vmware-workstation-17-pro-vitalicio",
+      "permanent": true
+    },
+    {
+      "source": "/products/avast-premium-security-1-ano",
+      "destination": "/gift-card/avast-secureline-vpn",
+      "permanent": true
+    },
+    {
+      "source": "/products/onlyfans",
+      "destination": "/gift-card/onlyfans",
+      "permanent": true
+    },
+    {
+      "source": "/collections/all",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/products/skin-fortnite",
+      "destination": "/gift-card/fortnite-skin-item-aleatorio",
+      "permanent": true
+    },
+    {
+      "source": "/products/transferencia-para-europa",
+      "destination": "/transferencias",
+      "permanent": true
+    },
+    {
       "source": "/collections/telefones",
       "destination": "/importacao",
       "permanent": true
