@@ -29,6 +29,7 @@ import { GoogleAnalytics } from '@/components/GoogleAnalytics';
 import { HelmetProvider } from 'react-helmet-async';
 import SEO from '@/components/SEO';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import GlobalSocialProof from '@/components/GlobalSocialProof';
 import { trackPageViewAutomatic } from '@/lib/analytics-tracker';
 import { useEffect } from 'react';
 
@@ -82,6 +83,9 @@ export default function App() {
                       />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
+                    
+                    {/* Notificação Social Global - aparece em todas as páginas exceto admin */}
+                    <GlobalSocialProof />
                   </SearchProvider>
                 </CartProvider>
               </AuthProvider>

@@ -5,6 +5,7 @@ import Navigation from "./Navigation";
 import HeroBanner from "./HeroBanner";
 import FilterSection from "./FilterSection";
 import GiftCardGrid from "./GiftCardGrid";
+
 import { GiftCard } from "@/types/supabase";
 import { getGiftCards, getExchangeRates } from "@/lib/database";
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";

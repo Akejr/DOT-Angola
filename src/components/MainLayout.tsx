@@ -2,6 +2,7 @@ import React, { ReactNode } from 'react';
 import Header from './Header';
 import Navigation from './Navigation';
 
+
 interface MainLayoutProps {
   children: ReactNode;
   onPageChange: (id: number) => void;
