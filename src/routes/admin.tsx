@@ -12,6 +12,7 @@ import ImportRequestsPage from '@/pages/admin/ImportRequestsPage';
 import SalesManager from '@/components/admin/SalesManager';
 import InvoicePdfPage from '@/pages/admin/InvoicePdfPage';
 import OrdersPage from '@/pages/admin/orders';
+import PhysicalProductsManager from '@/components/admin/PhysicalProductsManager';
 
 export default function AdminRoutes() {
   return (
@@ -19,6 +20,7 @@ export default function AdminRoutes() {
       <Route index element={<Dashboard />} />
       <Route path="gift-cards" element={<GiftCardManager />} />
       <Route path="categories" element={<CategoryManager />} />
+      <Route path="physical-products" element={<PhysicalProductsManager />} />
       <Route path="promotions" element={<PromotionsPage />} />
       <Route path="sales" element={<SalesManager />} />
       <Route path="exchange-rates" element={<ExchangeRateManager />} />

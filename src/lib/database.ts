@@ -30,6 +30,18 @@ const cacheStore = {
   categories: {
     data: null,
     timestamp: 0
+  },
+  physicalProducts: {
+    data: null,
+    timestamp: 0
+  },
+  physicalProductCategories: {
+    data: null,
+    timestamp: 0
+  },
+  exchangeRates: {
+    data: null,
+    timestamp: 0
   }
 };
 
@@ -282,7 +294,10 @@ export async function getGiftCardById(idOrSlug: string): Promise<GiftCard | null
 
 // Função auxiliar para gerar slugs
 function generateSlug(name: string): string {
-  return name
+  // Se houver "|" no nome, usar apenas a parte antes do primeiro "|"
+  const nameBeforePipe = name.split('|')[0].trim();
+  
+  return nameBeforePipe
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '') // Remove acentos
@@ -667,13 +682,25 @@ export async function deleteCategory(id: string) {
 
 // Exchange Rates
 export async function getExchangeRates(): Promise<ExchangeRate[]> {
+  // Verificar cache
+  const now = Date.now();
+  if (cacheStore.exchangeRates.data && now - cacheStore.exchangeRates.timestamp < CACHE_DURATION) {
+    return cacheStore.exchangeRates.data;
+  }
+
   const { data, error } = await supabase
     .from('exchange_rates')
     .select('*')
     .order('currency');
 
   if (error) throw error;
-  return data || [];
+  
+  // Salvar no cache
+  const rates = data || [];
+  cacheStore.exchangeRates.data = rates;
+  cacheStore.exchangeRates.timestamp = now;
+  
+  return rates;
 }
 
 // Inicializar taxas de câmbio com valores padrão se não existirem
@@ -1215,13 +1242,20 @@ export async function getPromotionSettings() {
 
 // Import Requests
 export async function createImportRequest(request: Omit<ImportRequest, 'id' | 'created_at' | 'updated_at'>) {
+  console.log('Dados enviados para createImportRequest:', request);
+  
   const { data, error } = await supabase
     .from('import_requests')
     .insert([request])
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error('Erro ao inserir import_request:', error);
+    throw error;
+  }
+  
+  console.log('Import request criado com sucesso:', data);
   return data;
 }
 
@@ -1242,13 +1276,19 @@ export async function getImportRequests(status?: string) {
 }
 
 export async function updateImportRequestStatus(id: string, status: string, notes?: string) {
+  const updateData: any = { 
+    status,
+    updated_at: new Date().toISOString()
+  };
+  
+  // Só adiciona notes se a coluna existir e notes for fornecido
+  if (notes) {
+    updateData.notes = notes;
+  }
+  
   const { data, error } = await supabase
     .from('import_requests')
-    .update({ 
-      status,
-      notes: notes || null,
-      updated_at: new Date().toISOString()
-    })
+    .update(updateData)
     .eq('id', id)
     .select()
     .single();
@@ -1266,4 +1306,317 @@ export async function getImportRequestById(id: string) {
 
   if (error) throw error;
   return data;
+}
+
+// ===== PHYSICAL PRODUCTS FUNCTIONS =====
+
+// Physical Product Categories
+export async function getPhysicalProductCategories() {
+  try {
+    const { data, error } = await supabase
+      .from('physical_product_categories')
+      .select(`
+        id,
+        name,
+        description,
+        parent_id,
+        created_at,
+        updated_at,
+        parent:physical_product_categories!parent_id(id, name)
+      `)
+      .order('name', { ascending: true });
+
+    if (error) throw error;
+
+    // Organizar em estrutura hierárquica
+    const mainCategories = data?.filter(cat => !cat.parent_id) || [];
+    const subcategories = data?.filter(cat => cat.parent_id) || [];
+
+    return mainCategories.map(category => ({
+      ...category,
+      subcategories: subcategories.filter(sub => sub.parent_id === category.id)
+    }));
+  } catch (error) {
+    console.error('Erro ao buscar categorias de produtos físicos:', error);
+    throw error;
+  }
+}
+
+export async function createPhysicalProductCategory(data: { 
+  name: string; 
+  description?: string | null; 
+  parent_id?: string | null 
+}) {
+  try {
+    const { data: category, error } = await supabase
+      .from('physical_product_categories')
+      .insert([{
+        name: data.name,
+        description: data.description,
+        parent_id: data.parent_id,
+        slug: generateSlug(data.name)
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return category;
+  } catch (error) {
+    console.error('Erro ao criar categoria de produto físico:', error);
+    throw error;
+  }
+}
+
+export async function updatePhysicalProductCategory(id: string, data: {
+  name?: string;
+  description?: string | null;
+  parent_id?: string | null;
+}) {
+  try {
+    const updateData: any = { ...data };
+    if (data.name) {
+      updateData.slug = generateSlug(data.name);
+    }
+
+    const { data: category, error } = await supabase
+      .from('physical_product_categories')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return category;
+  } catch (error) {
+    console.error('Erro ao atualizar categoria de produto físico:', error);
+    throw error;
+  }
+}
+
+export async function deletePhysicalProductCategory(id: string) {
+  try {
+    // Verificar se há produtos usando esta categoria
+    const { data: products, error: checkError } = await supabase
+      .from('physical_products')
+      .select('id')
+      .or(`category_id.eq.${id},subcategory_id.eq.${id}`);
+
+    if (checkError) throw checkError;
+
+    if (products && products.length > 0) {
+      throw new Error('Não é possível excluir categoria que possui produtos associados');
+    }
+
+    const { error } = await supabase
+      .from('physical_product_categories')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+  } catch (error) {
+    console.error('Erro ao excluir categoria de produto físico:', error);
+    throw error;
+  }
+}
+
+// Physical Products
+export async function getPhysicalProducts() {
+  try {
+    // Verificar cache
+    const now = Date.now();
+    if (cacheStore.physicalProducts.data && now - cacheStore.physicalProducts.timestamp < CACHE_DURATION) {
+      return cacheStore.physicalProducts.data;
+    }
+
+    const { data, error } = await supabase
+      .from('physical_products')
+      .select(`
+        id,
+        name,
+        description,
+        slug,
+        price,
+        currency,
+        weight,
+        images,
+        category_id,
+        subcategory_id,
+        is_featured,
+        is_active,
+        created_at,
+        updated_at,
+        category:physical_product_categories!category_id(id, name),
+        subcategory:physical_product_categories!subcategory_id(id, name)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    
+    // Salvar no cache
+    const products = data || [];
+    cacheStore.physicalProducts.data = products;
+    cacheStore.physicalProducts.timestamp = now;
+    
+    return products;
+  } catch (error) {
+    console.error('Erro ao buscar produtos físicos:', error);
+    throw error;
+  }
+}
+
+export async function getPhysicalProductById(idOrSlug: string) {
+  try {
+    // Verificar se o parâmetro parece ser um UUID
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    
+    let query = supabase
+      .from('physical_products')
+      .select(`
+        id,
+        name,
+        description,
+        slug,
+        price,
+        currency,
+        weight,
+        images,
+        category_id,
+        subcategory_id,
+        is_featured,
+        is_active,
+        created_at,
+        updated_at,
+        category:physical_product_categories!category_id(id, name),
+        subcategory:physical_product_categories!subcategory_id(id, name)
+      `);
+
+    // Se parece com UUID, buscar por ID, senão buscar por slug
+    if (uuidPattern.test(idOrSlug)) {
+      query = query.eq('id', idOrSlug);
+    } else {
+      query = query.eq('slug', idOrSlug);
+    }
+
+    const { data, error } = await query.single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Erro ao buscar produto físico:', error);
+    throw error;
+  }
+}
+
+export async function createPhysicalProduct(data: {
+  name: string;
+  description: string;
+  price: number;
+  currency: string;
+  weight?: number | null;
+  images: string[];
+  category_id: string;
+  subcategory_id?: string | null;
+  is_featured?: boolean;
+  is_active?: boolean;
+}) {
+  try {
+    const { data: product, error } = await supabase
+      .from('physical_products')
+      .insert([{
+        ...data,
+        slug: generateSlug(data.name),
+        is_featured: data.is_featured || false,
+        is_active: data.is_active !== false // true por padrão
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    
+    // Limpar cache após criar um produto físico
+    clearCache('physicalProducts');
+    
+    return product;
+  } catch (error) {
+    console.error('Erro ao criar produto físico:', error);
+    throw error;
+  }
+}
+
+export async function updatePhysicalProduct(id: string, data: any) {
+  try {
+    const updateData = { ...data };
+    if (data.name) {
+      updateData.slug = generateSlug(data.name);
+    }
+
+    const { data: product, error } = await supabase
+      .from('physical_products')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    
+    // Limpar cache após atualizar um produto físico
+    clearCache('physicalProducts');
+    
+    return product;
+  } catch (error) {
+    console.error('Erro ao atualizar produto físico:', error);
+    throw error;
+  }
+}
+
+export async function deletePhysicalProduct(id: string) {
+  try {
+    const { error } = await supabase
+      .from('physical_products')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    
+    // Limpar cache após excluir um produto físico
+    clearCache('physicalProducts');
+  } catch (error) {
+    console.error('Erro ao excluir produto físico:', error);
+    throw error;
+  }
+}
+
+export async function getPhysicalProductsByCategory(categoryId?: string) {
+  try {
+    let query = supabase
+      .from('physical_products')
+      .select(`
+        id,
+        name,
+        description,
+        slug,
+        price,
+        currency,
+        images,
+        category_id,
+        subcategory_id,
+        is_featured,
+        is_active,
+        category:physical_product_categories!category_id(id, name),
+        subcategory:physical_product_categories!subcategory_id(id, name)
+      `)
+      .eq('is_active', true);
+
+    if (categoryId) {
+      query = query.or(`category_id.eq.${categoryId},subcategory_id.eq.${categoryId}`);
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Erro ao buscar produtos físicos por categoria:', error);
+    throw error;
+  }
 } 

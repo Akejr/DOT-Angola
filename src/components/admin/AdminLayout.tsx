@@ -59,7 +59,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const menuItems = [
     { icon: Home, label: 'Dashboard', path: '/admin' },
     { icon: ShoppingBag, label: 'Gift Cards', path: '/admin/gift-cards' },
-    { icon: Tag, label: 'Categorias', path: '/admin/categories' },
+    { icon: Tag, label: 'Categorias GC', path: '/admin/categories' },
+    { icon: Package, label: 'Produtos Físicos', path: '/admin/physical-products' },
     { icon: Percent, label: 'Promoções', path: '/admin/promotions' },
     { icon: Receipt, label: 'Vendas', path: '/admin/sales' },
     { icon: ShoppingCart, label: 'Compras Efetuadas', path: '/admin/orders' },

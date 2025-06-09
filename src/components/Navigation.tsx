@@ -42,6 +42,14 @@ const Navigation = ({ onPageChange }: NavigationProps) => {
     // Restaurar posição de scroll quando a página carrega
     const restoreScrollPosition = () => {
       try {
+        // Para páginas de produto, sempre começar do topo
+        if (location.pathname.startsWith('/produto/')) {
+          setTimeout(() => {
+            window.scrollTo(0, 0);
+          }, 100);
+          return;
+        }
+
         const scrollPositions = JSON.parse(localStorage.getItem(STORAGE_KEYS.SCROLL_POSITIONS) || '{}');
         const savedPosition = scrollPositions[location.pathname];
         
@@ -73,12 +81,17 @@ const Navigation = ({ onPageChange }: NavigationProps) => {
   // Atualizar o item selecionado com base na URL atual
   useEffect(() => {
     const currentPath = location.pathname;
-    const matchingItem = navItems.find(item => {
+    let matchingItem = navItems.find(item => {
       if (item.path === "/") {
         return currentPath === "/"
       }
       return currentPath.startsWith(item.path);
     });
+    
+    // Se for uma página de produto, marcar como Importação
+    if (!matchingItem && currentPath.startsWith('/produto/')) {
+      matchingItem = navItems.find(item => item.path === '/importacao');
+    }
     
     if (matchingItem) {
       setSelectedId(matchingItem.id);

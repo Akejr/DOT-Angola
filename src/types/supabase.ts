@@ -102,7 +102,7 @@ export interface ImportRequest {
   address: string;
   province: string;
   status: 'pending' | 'processing' | 'completed' | 'cancelled';
-  notes: string | null;
+  notes?: string | null;
 } 
 
 export interface SaleItem {

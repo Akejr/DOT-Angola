@@ -27,7 +27,6 @@ interface ImportRequest {
   address: string;
   province: string;
   status: 'pending' | 'processing' | 'completed' | 'cancelled';
-  notes: string | null;
 }
 
 // Status do pedido (cores e rótulos)
@@ -95,13 +94,12 @@ export default function ImportRequestsManager() {
   }, [statusFilter]);
 
   // Atualizar status do pedido
-  const updateRequestStatus = async (id: string, status: string, notes: string | null = null) => {
+  const updateRequestStatus = async (id: string, status: string) => {
     try {
       const { error } = await supabase
         .from('import_requests')
         .update({ 
           status,
-          notes: notes || null,
           updated_at: new Date().toISOString() 
         })
         .eq('id', id);
@@ -111,13 +109,13 @@ export default function ImportRequestsManager() {
       // Atualizar a lista local
       setImportRequests(prev => 
         prev.map(req => 
-          req.id === id ? { ...req, status: status as any, notes } : req
+          req.id === id ? { ...req, status: status as any } : req
         )
       );
       
       // Atualizar o pedido selecionado se estiver visualizando
       if (selectedRequest?.id === id) {
-        setSelectedRequest(prev => prev ? { ...prev, status: status as any, notes } : null);
+        setSelectedRequest(prev => prev ? { ...prev, status: status as any } : null);
       }
       
       setShowModal(false);
@@ -514,14 +512,7 @@ export default function ImportRequestsManager() {
                       <StatusBadge status={selectedRequest.status} />
                     </div>
                     
-                    {selectedRequest.notes && (
-                      <div>
-                        <span className="text-xs text-gray-500">Notas</span>
-                        <p className="text-xs sm:text-sm text-gray-900 bg-white p-2 rounded border border-gray-200 mt-1">
-                          {selectedRequest.notes}
-                        </p>
-                      </div>
-                    )}
+
                     
                     {/* Atualizar Status */}
                     <div className="pt-3">
@@ -531,8 +522,7 @@ export default function ImportRequestsManager() {
                           <button
                             key={key}
                             onClick={() => {
-                              const notes = prompt('Adicionar notas (opcional):');
-                              updateRequestStatus(selectedRequest.id, key, notes);
+                              updateRequestStatus(selectedRequest.id, key);
                             }}
                             disabled={key === selectedRequest.status}
                             className={`px-3 py-2 rounded-md text-xs sm:text-sm font-medium flex items-center justify-center ${

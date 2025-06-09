@@ -313,13 +313,13 @@ const VisaVirtualPage: React.FC = () => {
         description="Cartão Visa Virtual pré-pago para angolanos comprarem online no exterior. Pagamento em Kwanzas, entrega digital instantânea e aceito mundialmente para compras internacionais seguras."
         type="product"
       />
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-        <div className="max-w-6xl w-full bg-white rounded-3xl shadow-xl overflow-hidden">
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-0 sm:p-4">
+        <div className="max-w-6xl w-full bg-white rounded-none sm:rounded-3xl shadow-xl overflow-hidden">
           <Header />
           <Navigation onPageChange={handlePageChange} />
           
           <div className="flex-grow flex flex-col">
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <div className="max-w-5xl mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {/* Cartão Virtual - Mantido intacto */}
