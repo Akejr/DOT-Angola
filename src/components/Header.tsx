@@ -1,14 +1,31 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, ShoppingBag, Bell, X, Tag } from "lucide-react";
+import { Search, ShoppingBag, Bell, X, Tag, Package } from "lucide-react";
 import NotificationDropdown from "./NotificationDropdown";
 import CartDropdown from "./CartDropdown";
-import { getActiveNotifications, getGiftCards, getExchangeRates } from "@/lib/database";
+import { getActiveNotifications, getGiftCards, getExchangeRates, getPhysicalProducts } from "@/lib/database";
 import { useCart } from "@/contexts/CartContext";
 import { Link, useNavigate } from "react-router-dom";
 import { useSearch } from "@/contexts/SearchContext";
 import { GiftCard } from "@/types/supabase";
+
+interface PhysicalProduct {
+  id: string;
+  name: string;
+  description: string;
+  slug?: string;
+  price: number;
+  currency: string;
+  images: string[];
+  category_id: string;
+  is_active: boolean;
+}
+
+type SearchResult = {
+  type: 'gift_card' | 'physical_product';
+  data: GiftCard | PhysicalProduct;
+};
 
 const Header = () => {
   const [showNotifications, setShowNotifications] = useState(false);
@@ -17,9 +34,10 @@ const Header = () => {
   const { searchTerm, setSearchTerm } = useSearch();
   const [inputFocused, setInputFocused] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [searchResults, setSearchResults] = useState<GiftCard[]>([]);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [allGiftCards, setAllGiftCards] = useState<GiftCard[]>([]);
+  const [allPhysicalProducts, setAllPhysicalProducts] = useState<PhysicalProduct[]>([]);
   const [exchangeRates, setExchangeRates] = useState<Array<{currency: string, rate: number}>>([]);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const mobileSearchRef = useRef<HTMLDivElement>(null);
@@ -49,17 +67,21 @@ const Header = () => {
   }, []);
 
   useEffect(() => {
-    // Carregar todos os gift cards para pesquisa
-    const loadGiftCards = async () => {
+    // Carregar todos os gift cards e produtos físicos para pesquisa
+    const loadData = async () => {
       try {
-        const cards = await getGiftCards();
+        const [cards, physicalProducts] = await Promise.all([
+          getGiftCards(),
+          getPhysicalProducts()
+        ]);
         setAllGiftCards(cards);
+        setAllPhysicalProducts(physicalProducts as unknown as PhysicalProduct[]);
       } catch (error) {
-        console.error('Erro ao carregar gift cards:', error);
+        console.error('Erro ao carregar dados para pesquisa:', error);
       }
     };
 
-    loadGiftCards();
+    loadData();
   }, []);
 
   useEffect(() => {
@@ -99,7 +121,7 @@ const Header = () => {
       const searchTermLower = searchTerm.toLowerCase().trim();
       
       // Filtrar os gift cards pelo termo de pesquisa
-      const filtered = allGiftCards.filter(card => {
+      const giftCardResults = allGiftCards.filter(card => {
         // Pesquisar no nome do gift card
         const nameMatch = card.name.toLowerCase().includes(searchTermLower);
         
@@ -114,16 +136,36 @@ const Header = () => {
           ) : false;
         
         return nameMatch || descriptionMatch || categoryMatch;
-      });
+      }).map(card => ({
+        type: 'gift_card' as const,
+        data: card
+      }));
+
+      // Filtrar os produtos físicos pelo termo de pesquisa
+      const physicalProductResults = allPhysicalProducts.filter(product => {
+        if (!product.is_active) return false;
+        
+        const nameMatch = product.name.toLowerCase().includes(searchTermLower);
+        const descriptionMatch = product.description ? 
+          product.description.toLowerCase().includes(searchTermLower) : false;
+        
+        return nameMatch || descriptionMatch;
+      }).map(product => ({
+        type: 'physical_product' as const,
+        data: product
+      }));
+
+      // Combinar resultados, priorizando gift cards
+      const allResults = [...giftCardResults, ...physicalProductResults];
       
-      // Limitar a 5 resultados para o dropdown
-      setSearchResults(filtered.slice(0, 5));
+      // Limitar a 6 resultados para o dropdown
+      setSearchResults(allResults.slice(0, 6));
       setIsSearching(false);
     } else {
       setShowResults(false);
       setSearchResults([]);
     }
-  }, [searchTerm, allGiftCards]);
+  }, [searchTerm, allGiftCards, allPhysicalProducts]);
 
   useEffect(() => {
     // Carregar taxas de câmbio
@@ -152,9 +194,16 @@ const Header = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchTerm.trim()) {
-      // Redirecionar para a página do gift card se houver apenas um resultado
+      // Redirecionar para a página adequada se houver apenas um resultado
       if (searchResults.length === 1) {
-        navigate(`/gift-card/${searchResults[0].slug || searchResults[0].id}`);
+        const result = searchResults[0];
+        if (result.type === 'gift_card') {
+          const giftCard = result.data as GiftCard;
+          navigate(`/gift-card/${giftCard.slug || giftCard.id}`);
+        } else {
+          const product = result.data as PhysicalProduct;
+          navigate(`/produto/${product.slug || product.id}`);
+        }
       } else if (searchResults.length > 0) {
         // Se houver mais de um resultado, mantenha o dropdown aberto
         setShowResults(true);
@@ -202,8 +251,8 @@ const Header = () => {
   };
 
   // Função específica para lidar com cliques nos resultados mobile
-  const handleMobileResultClick = (result: GiftCard) => {
-    console.log('Clique no resultado mobile:', result.name, result.id, result.slug);
+  const handleMobileResultClick = (result: SearchResult) => {
+    console.log('Clique no resultado mobile:', result.type, result.data);
     
     setIsNavigating(true);
     setShowResults(false);
@@ -211,13 +260,70 @@ const Header = () => {
     setShowMobileSearch(false);
     
     // Navegar usando React Router
-    const targetPath = `/gift-card/${result.slug || result.id}`;
+    let targetPath = '';
+    if (result.type === 'gift_card') {
+      const giftCard = result.data as GiftCard;
+      targetPath = `/gift-card/${giftCard.slug || giftCard.id}`;
+    } else {
+      const product = result.data as PhysicalProduct;
+      targetPath = `/produto/${product.slug || product.id}`;
+    }
+    
     navigate(targetPath);
     
     // Reset do estado de navegação
     setTimeout(() => {
       setIsNavigating(false);
     }, 500);
+  };
+
+  const getResultImage = (result: SearchResult) => {
+    if (result.type === 'gift_card') {
+      const giftCard = result.data as GiftCard;
+      return giftCard.image_url || '/images/placeholder.png';
+    } else {
+      const product = result.data as PhysicalProduct;
+      return product.images?.[0] || '/images/placeholder.png';
+    }
+  };
+
+  const getResultPrice = (result: SearchResult) => {
+    if (result.type === 'gift_card') {
+      const giftCard = result.data as GiftCard;
+      return formatPrice(giftCard.original_price, giftCard.currency);
+    } else {
+      const product = result.data as PhysicalProduct;
+      return formatPrice(product.price, product.currency);
+    }
+  };
+
+  const getResultLink = (result: SearchResult) => {
+    if (result.type === 'gift_card') {
+      const giftCard = result.data as GiftCard;
+      return `/gift-card/${giftCard.slug || giftCard.id}`;
+    } else {
+      const product = result.data as PhysicalProduct;
+      return `/produto/${product.slug || product.id}`;
+    }
+  };
+
+  const getResultIcon = (result: SearchResult) => {
+    if (result.type === 'gift_card') {
+      const giftCard = result.data as GiftCard;
+      return getMainCategory(giftCard) ? (
+        <div className="inline-flex items-center bg-gray-100 text-gray-700 text-xs font-medium px-2 py-0.5 rounded">
+          <Tag className="w-3 h-3 mr-1" />
+          {getMainCategory(giftCard)}
+        </div>
+      ) : null;
+    } else {
+      return (
+        <div className="inline-flex items-center bg-blue-100 text-blue-700 text-xs font-medium px-2 py-0.5 rounded">
+          <Package className="w-3 h-3 mr-1" />
+          Produto Físico
+        </div>
+      );
+    }
   };
 
   return (
@@ -241,7 +347,7 @@ const Header = () => {
       >
         <form onSubmit={handleSearch}>
           <Input 
-            placeholder="Pesquisar gift cards..." 
+            placeholder="Pesquisar gift cards e produtos..." 
             className={`pl-10 pr-${searchTerm ? '10' : '4'} py-2 bg-dot-light-gray rounded-full w-full transition-all duration-300 focus:w-full ${inputFocused ? 'ring-2 ring-blue-500' : ''}`}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -280,11 +386,11 @@ const Header = () => {
                 <div>
                   {searchResults.map(result => (
                     <Link
-                      key={result.id}
-                      to={`/gift-card/${result.slug || result.id}`}
+                      key={result.data.id}
+                      to={getResultLink(result)}
                       className="block border-b border-gray-100 last:border-0 p-3 hover:bg-gray-50 cursor-pointer transition-colors duration-150"
                       onClick={() => {
-                        console.log('Link clicado desktop:', result.name, result.id, result.slug); // Debug
+                        console.log('Link clicado desktop:', result.data.name, result.data.id); // Debug
                         setShowResults(false);
                         setSearchTerm('');
                       }}
@@ -292,23 +398,18 @@ const Header = () => {
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
                           <img 
-                            src={result.image_url || '/images/placeholder.png'} 
-                            alt={result.name}
+                            src={getResultImage(result)} 
+                            alt={result.data.name}
                             className="w-full h-full object-cover"
                           />
                         </div>
                         <div className="flex-1">
-                          <h4 className="text-sm font-medium text-gray-800 line-clamp-1">{result.name}</h4>
+                          <h4 className="text-sm font-medium text-gray-800 line-clamp-1">{result.data.name}</h4>
                           <div className="flex items-center justify-between mt-1">
                             <span className="text-sm font-semibold text-blue-600">
-                              {formatPrice(result.original_price, result.currency)}
+                              {getResultPrice(result)}
                             </span>
-                            {getMainCategory(result) && (
-                              <div className="inline-flex items-center bg-gray-100 text-gray-700 text-xs font-medium px-2 py-0.5 rounded">
-                                <Tag className="w-3 h-3 mr-1" />
-                                {getMainCategory(result)}
-                              </div>
-                            )}
+                            {getResultIcon(result)}
                           </div>
                         </div>
                       </div>
@@ -404,7 +505,7 @@ const Header = () => {
             <div className="relative">
               <Input 
                 id="mobile-search-input"
-                placeholder="Pesquisar gift cards..." 
+                placeholder="Pesquisar gift cards e produtos..." 
                 className="pl-10 pr-10 py-2 bg-dot-light-gray rounded-full w-full"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -451,43 +552,26 @@ const Header = () => {
                 <div>
                   {searchResults.map(result => (
                     <div
-                      key={result.id}
+                      key={result.data.id}
                       data-search-result="true"
                       className="block w-full border-b border-gray-100 last:border-0 p-3 hover:bg-gray-50 cursor-pointer transition-colors duration-150 text-left relative z-[10001]"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleMobileResultClick(result);
-                      }}
-                      onTouchStart={(e) => {
-                        e.stopPropagation();
-                      }}
-                      onTouchEnd={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleMobileResultClick(result);
-                      }}
+                      onClick={() => handleMobileResultClick(result)}
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
                           <img 
-                            src={result.image_url || '/images/placeholder.png'} 
-                            alt={result.name}
+                            src={getResultImage(result)} 
+                            alt={result.data.name}
                             className="w-full h-full object-cover"
                           />
                         </div>
                         <div className="flex-1">
-                          <h4 className="text-sm font-medium text-gray-800 line-clamp-1">{result.name}</h4>
+                          <h4 className="text-sm font-medium text-gray-800 line-clamp-1">{result.data.name}</h4>
                           <div className="flex items-center justify-between mt-1">
                             <span className="text-sm font-semibold text-blue-600">
-                              {formatPrice(result.original_price, result.currency)}
+                              {getResultPrice(result)}
                             </span>
-                            {getMainCategory(result) && (
-                              <div className="inline-flex items-center bg-gray-100 text-gray-700 text-xs font-medium px-2 py-0.5 rounded">
-                                <Tag className="w-3 h-3 mr-1" />
-                                {getMainCategory(result)}
-                              </div>
-                            )}
+                            {getResultIcon(result)}
                           </div>
                         </div>
                       </div>

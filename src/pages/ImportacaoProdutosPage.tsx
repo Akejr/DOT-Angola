@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Navigation from '@/components/Navigation';
-import { SEO } from '@/components/SEO';
+import { DynamicSEO } from '@/components/DynamicSEO';
+import { seoService } from '@/lib/seoService';
 import { 
   Package, 
   Truck, 
@@ -65,6 +66,7 @@ interface Category {
 
 export default function ImportacaoProdutosPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [selectedPage, setSelectedPage] = useState(1);
   const [products, setProducts] = useState<PhysicalProduct[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -73,6 +75,7 @@ export default function ImportacaoProdutosPage() {
   const [loading, setLoading] = useState(true);
   const [exchangeRates, setExchangeRates] = useState<any[]>([]);
   const [showRequestForm, setShowRequestForm] = useState(false);
+  const [seoData, setSeoData] = useState<any>(null);
   const [requestFormData, setRequestFormData] = useState({
     productName: '',
     productLink: '',
@@ -87,6 +90,58 @@ export default function ImportacaoProdutosPage() {
   useEffect(() => {
     loadData();
   }, []);
+
+  // Gerar SEO dinâmico quando produtos e categorias carregarem
+  useEffect(() => {
+    if (products.length > 0 && categories.length > 0) {
+      const featuredProducts = products.filter(p => p.is_featured && p.is_active);
+      const seoMetadata = seoService.generateImportPageSEO(categories, featuredProducts);
+      setSeoData(seoMetadata);
+    }
+  }, [products, categories]);
+
+  // Verificar parâmetros da URL para categoria selecionada
+  useEffect(() => {
+    const categoryParam = searchParams.get('categoria');
+    if (categoryParam && categories.length > 0) {
+      // Procurar categoria por nome (slug)
+      const foundCategory = findCategoryBySlug(categoryParam, categories);
+      if (foundCategory) {
+        setSelectedCategory(foundCategory.id);
+        // Fazer scroll para a seção de produtos após um pequeno delay
+        setTimeout(() => {
+          scrollToProducts();
+        }, 500);
+      }
+    }
+  }, [searchParams, categories]);
+
+  const findCategoryBySlug = (slug: string, allCategories: Category[]): Category | null => {
+    for (const category of allCategories) {
+      if (generateSlug(category.name) === slug) {
+        return category;
+      }
+      if (category.subcategories) {
+        for (const subcat of category.subcategories) {
+          if (generateSlug(subcat.name) === slug) {
+            return subcat;
+          }
+        }
+      }
+    }
+    return null;
+  };
+
+  const generateSlug = (text: string) => {
+    return text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+  };
 
   const loadData = async () => {
     try {
@@ -213,43 +268,11 @@ export default function ImportacaoProdutosPage() {
 
   const featuredProducts = products.filter(p => p.is_featured && p.is_active).slice(0, 6);
 
-  // Dados estruturados JSON-LD para a página de importação
-  const structuredData = {
-    "@context": "https://schema.org/",
-    "@type": "WebPage",
-    "name": "Importação de Produtos da Europa",
-    "description": "Importamos produtos originais da Europa para Angola. iPhone, MacBook, Samsung, DJI, PlayStation, Xiaomi e muito mais.",
-    "url": "https://dot-angola.vercel.app/importacao",
-    "mainEntity": {
-      "@type": "Service",
-      "name": "Serviço de Importação de Produtos",
-      "description": "Importação de produtos eletrônicos e tecnológicos da Europa para Angola",
-      "provider": {
-        "@type": "Organization",
-        "name": "DOT Angola",
-        "url": "https://dot-angola.vercel.app"
-      },
-      "areaServed": "Angola",
-      "serviceType": "Importação de Produtos"
-    }
-  };
+
 
   return (
     <>
-      <SEO 
-        title="Importação de Produtos da Europa | DOT Angola - Eletrônicos, Apple, Samsung, DJI"
-        description="Importamos produtos originais da Europa para Angola. iPhone, MacBook, Samsung, DJI, PlayStation, Xiaomi e muito mais. Entrega segura em 7-15 dias. Preços competitivos em Kwanzas. Garantia internacional."
-        image="/images/import.png"
-        type="website"
-      />
-      
-      {/* Dados estruturados JSON-LD */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(structuredData)
-        }}
-      />
+      <DynamicSEO seoData={seoData} />
       <div className="min-h-screen bg-gray-100 flex items-center justify-center p-0 sm:p-4">
         <div className="max-w-6xl w-full bg-white rounded-none sm:rounded-3xl shadow-xl overflow-hidden">
           <Header />
@@ -407,7 +430,10 @@ export default function ImportacaoProdutosPage() {
             {/* Seção de Produtos */}
             <div className="p-8" data-products-section>
               <div className="max-w-7xl mx-auto">
-                <PhysicalProductsSection onRequestProduct={handleRequestProduct} />
+                <PhysicalProductsSection 
+                  onRequestProduct={handleRequestProduct}
+                  categoryFilter={selectedCategory}
+                />
               </div>
             </div>
             

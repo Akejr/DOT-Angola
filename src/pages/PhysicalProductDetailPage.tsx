@@ -4,7 +4,8 @@ import { ArrowLeft, ShoppingBag, Tag, Heart, Check, ChevronDown, Package, Star, 
 import { getPhysicalProductById, getExchangeRates, createImportRequest } from '@/lib/database';
 import { formatDescription } from '@/utils/formatDescription';
 import MainLayout from '@/components/MainLayout';
-import { SEO } from '@/components/SEO';
+import { DynamicSEO } from '@/components/DynamicSEO';
+import { seoService } from '@/lib/seoService';
 
 interface PhysicalProduct {
   id: string;
@@ -38,6 +39,7 @@ export default function PhysicalProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [selectedPage, setSelectedPage] = useState(3);
   const [exchangeRates, setExchangeRates] = useState<Array<{currency: string, rate: number}>>([]);
+  const [seoData, setSeoData] = useState<any>(null);
   const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showRequestForm, setShowRequestForm] = useState(false);
@@ -85,14 +87,16 @@ export default function PhysicalProductDetailPage() {
         
         // Converter preço para Kwanzas
         const rate = rates.find(r => r.currency === productData.currency);
+        let convertedPrice = null;
         if (rate) {
-          const priceInKwanzas = productData.price * rate.rate;
-          setKwanzaPrice(priceInKwanzas);
-          console.log('Preço convertido para Kwanzas:', priceInKwanzas);
+          convertedPrice = productData.price * rate.rate;
+          setKwanzaPrice(convertedPrice);
+          console.log('Preço convertido para Kwanzas:', convertedPrice);
         }
         
-        // Atualizar título da página
-        document.title = `${productData.name} | DOT Angola - Importação da Europa`;
+        // Gerar SEO dinâmico
+        const seoMetadata = seoService.generateProductSEO(productData as any, convertedPrice);
+        setSeoData(seoMetadata);
         
       } catch (error) {
         console.error('Erro ao carregar produto:', error);

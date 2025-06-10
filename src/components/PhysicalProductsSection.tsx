@@ -5,7 +5,9 @@ import {
   Search,
   ShoppingCart,
   Star,
-  Package
+  Package,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { 
   getPhysicalProducts, 
@@ -47,18 +49,25 @@ interface Category {
 
 interface PhysicalProductsSectionProps {
   onRequestProduct: () => void;
+  categoryFilter?: string;
+  hideCategories?: boolean;
 }
 
-function PhysicalProductsSection({ onRequestProduct }: PhysicalProductsSectionProps) {
+function PhysicalProductsSection({ 
+  onRequestProduct, 
+  categoryFilter,
+  hideCategories = false 
+}: PhysicalProductsSectionProps) {
   const [products, setProducts] = useState<PhysicalProduct[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>(categoryFilter || '');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [exchangeRates, setExchangeRates] = useState<any[]>([]);
   const [displayedProducts, setDisplayedProducts] = useState<PhysicalProduct[]>([]);
   const [visibleCount, setVisibleCount] = useState(6);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [showCategoriesMobile, setShowCategoriesMobile] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -82,6 +91,13 @@ function PhysicalProductsSection({ onRequestProduct }: PhysicalProductsSectionPr
     setDisplayedProducts(filtered.slice(0, 6));
     setVisibleCount(6);
   }, [products, selectedCategory, searchTerm]);
+
+  // Atualizar selectedCategory quando categoryFilter mudar
+  useEffect(() => {
+    if (categoryFilter) {
+      setSelectedCategory(categoryFilter);
+    }
+  }, [categoryFilter]);
 
   const loadData = async () => {
     try {
@@ -135,8 +151,6 @@ function PhysicalProductsSection({ onRequestProduct }: PhysicalProductsSectionPr
     setLoadingMore(false);
   };
 
-
-
   const featuredProducts = products.filter(p => p.is_featured && p.is_active).slice(0, 6);
 
   // Calcular contagem de produtos por categoria
@@ -146,63 +160,97 @@ function PhysicalProductsSection({ onRequestProduct }: PhysicalProductsSectionPr
     ).length;
   };
 
+  // Função para gerar slug da categoria
+  const generateCategorySlug = (categoryName: string) => {
+    return categoryName
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+  };
+
   return (
     <div className="flex flex-col lg:flex-row gap-8">
+      {/* Botão para mostrar/ocultar categorias no mobile */}
+      {!hideCategories && (
+        <div className="lg:hidden">
+          <button
+            onClick={() => setShowCategoriesMobile(!showCategoriesMobile)}
+            className="w-full bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between text-gray-900 font-medium hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center">
+              <Filter className="w-5 h-5 mr-2 text-blue-600" />
+              Filtrar por Categoria
+            </div>
+            {showCategoriesMobile ? (
+              <ChevronUp className="w-5 h-5 text-gray-600" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-600" />
+            )}
+          </button>
+        </div>
+      )}
+
       {/* Sidebar - Categorias (Esquerda) */}
-      <div className="lg:w-1/4">
-        <div className="bg-white rounded-lg shadow-sm border p-6 sticky top-4">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <Filter className="w-5 h-5 mr-2 text-blue-600" />
-            Categorias
-          </h3>
-          
-          <div className="space-y-2">
-            <button
-              onClick={() => setSelectedCategory('')}
-              className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                selectedCategory === '' 
-                  ? 'bg-blue-100 text-blue-700 font-medium' 
-                  : 'hover:bg-gray-100 text-gray-700'
-              }`}
-            >
-              Todas as Categorias ({products.filter(p => p.is_active).length})
-            </button>
+      {!hideCategories && (
+        <div className={`lg:w-1/4 ${showCategoriesMobile ? 'block' : 'hidden lg:block'}`}>
+          <div className="bg-white rounded-lg shadow-sm border p-6 lg:sticky lg:top-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <Filter className="w-5 h-5 mr-2 text-blue-600" />
+              Categorias
+            </h3>
             
-            {categories.map((category) => (
-              <div key={category.id}>
-                <button
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                    selectedCategory === category.id 
-                      ? 'bg-blue-100 text-blue-700 font-medium' 
-                      : 'hover:bg-gray-100 text-gray-700'
-                  }`}
-                >
-                  {category.name} ({getProductCountForCategory(category.id)})
-                </button>
-                
-                {/* Subcategorias */}
-                {category.subcategories && category.subcategories.map((sub) => (
+            <div className="space-y-2">
+              <button
+                onClick={() => setSelectedCategory('')}
+                className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                  selectedCategory === '' 
+                    ? 'bg-blue-100 text-blue-700 font-medium' 
+                    : 'hover:bg-gray-100 text-gray-700'
+                }`}
+              >
+                Todas as Categorias ({products.filter(p => p.is_active).length})
+              </button>
+              
+              {categories.map((category) => (
+                <div key={category.id}>
                   <button
-                    key={sub.id}
-                    onClick={() => setSelectedCategory(sub.id)}
-                    className={`w-full text-left px-8 py-1 text-sm rounded-lg transition-colors ${
-                      selectedCategory === sub.id 
-                        ? 'bg-blue-50 text-blue-600 font-medium' 
-                        : 'hover:bg-gray-50 text-gray-600'
+                    onClick={() => setSelectedCategory(category.id)}
+                    className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                      selectedCategory === category.id 
+                        ? 'bg-blue-100 text-blue-700 font-medium' 
+                        : 'hover:bg-gray-100 text-gray-700'
                     }`}
                   >
-                    {sub.name} ({getProductCountForCategory(sub.id)})
+                    {category.name} ({getProductCountForCategory(category.id)})
                   </button>
-                ))}
-              </div>
-            ))}
+                  
+                  {/* Subcategorias */}
+                  {category.subcategories && category.subcategories.map((sub) => (
+                    <button
+                      key={sub.id}
+                      onClick={() => setSelectedCategory(sub.id)}
+                      className={`w-full text-left px-8 py-1 text-sm rounded-lg transition-colors ${
+                        selectedCategory === sub.id 
+                          ? 'bg-blue-50 text-blue-600 font-medium' 
+                          : 'hover:bg-gray-50 text-gray-600'
+                      }`}
+                    >
+                      {sub.name} ({getProductCountForCategory(sub.id)})
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Lista de Produtos (Direita) */}
-      <div className="lg:w-3/4">
+      <div className={hideCategories ? "w-full" : "lg:w-3/4"}>
         {/* Barra de Pesquisa */}
         <div className="mb-6">
           <div className="relative">
@@ -220,12 +268,13 @@ function PhysicalProductsSection({ onRequestProduct }: PhysicalProductsSectionPr
         {/* Produtos em Destaque */}
         {featuredProducts.length > 0 && (
           <div className="mb-8">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-              <Star className="w-5 h-5 mr-2 text-yellow-500" />
-              Produtos em Destaque
+            <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4 flex items-center">
+              <Star className="w-4 lg:w-5 h-4 lg:h-5 mr-2 text-yellow-500" />
+              <span className="hidden sm:inline">Produtos em Destaque</span>
+              <span className="sm:hidden">Destaques</span>
             </h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-8">
               {featuredProducts.map((product) => (
                 <Link key={product.id} to={`/produto/${product.slug || product.id}`} className="group bg-white rounded-lg shadow-sm border hover:shadow-lg transition-all duration-200 block overflow-hidden">
                   <div className="relative">
@@ -243,19 +292,19 @@ function PhysicalProductsSection({ onRequestProduct }: PhysicalProductsSectionPr
                     </div>
                   </div>
                   
-                  <div className="p-4 bg-white">
-                    <h4 className="font-semibold text-gray-900 mb-3 line-clamp-2 min-h-[3rem] leading-snug">
+                  <div className="p-3 lg:p-4 bg-white">
+                    <h4 className="font-semibold text-gray-900 mb-2 lg:mb-3 line-clamp-2 min-h-[2.5rem] lg:min-h-[3rem] leading-snug text-sm lg:text-base">
                       {product.name}
                     </h4>
                     
-                    <div className="space-y-3">
+                    <div className="space-y-2 lg:space-y-3">
                       <div className="flex items-baseline gap-1">
-                        <span className="text-2xl font-bold text-[#01042D]">{convertPriceToKwanzas(product.price, product.currency)}</span>
-                        <span className="text-lg font-semibold text-[#01042D]">Kz</span>
+                        <span className="text-lg lg:text-2xl font-bold text-[#01042D]">{convertPriceToKwanzas(product.price, product.currency)}</span>
+                        <span className="text-sm lg:text-lg font-semibold text-[#01042D]">Kz</span>
                       </div>
                       
-                      <div className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
-                        <ShoppingCart className="w-4 h-4" />
+                      <div className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 lg:py-3 px-3 lg:px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm lg:text-base">
+                        <ShoppingCart className="w-3 lg:w-4 h-3 lg:h-4" />
                         <span>Comprar</span>
                       </div>
                     </div>
@@ -269,10 +318,11 @@ function PhysicalProductsSection({ onRequestProduct }: PhysicalProductsSectionPr
         {/* Todos os Produtos */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
-            <h3 className="text-2xl font-bold text-gray-900 flex items-center">
-              <Package className="w-6 h-6 mr-3 text-blue-600" />
-              {selectedCategory ? 'Produtos da Categoria' : 'Todos os Produtos'}
-              <span className="bg-blue-100 text-blue-700 text-lg font-semibold px-3 py-1 rounded-full ml-3">
+            <h3 className="text-xl lg:text-2xl font-bold text-gray-900 flex items-center">
+              <Package className="w-5 lg:w-6 h-5 lg:h-6 mr-2 lg:mr-3 text-blue-600" />
+              <span className="hidden sm:inline">{selectedCategory ? 'Produtos da Categoria' : 'Todos os Produtos'}</span>
+              <span className="sm:hidden">{selectedCategory ? 'Categoria' : 'Produtos'}</span>
+              <span className="bg-blue-100 text-blue-700 text-sm lg:text-lg font-semibold px-2 lg:px-3 py-1 rounded-full ml-2 lg:ml-3">
                 {(() => {
                   return products.filter(product => {
                     const matchesCategory = !selectedCategory || 
@@ -314,7 +364,7 @@ function PhysicalProductsSection({ onRequestProduct }: PhysicalProductsSectionPr
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
               {displayedProducts.map((product) => (
               <Link key={product.id} to={`/produto/${product.slug || product.id}`} className="group bg-white rounded-lg shadow-sm border hover:shadow-lg transition-all duration-200 block overflow-hidden">
                 <div className="relative">
@@ -334,19 +384,19 @@ function PhysicalProductsSection({ onRequestProduct }: PhysicalProductsSectionPr
                   )}
                 </div>
                 
-                <div className="p-4 bg-white">
-                  <h4 className="font-semibold text-gray-900 mb-3 line-clamp-2 min-h-[3rem] leading-snug">
+                <div className="p-3 lg:p-4 bg-white">
+                  <h4 className="font-semibold text-gray-900 mb-2 lg:mb-3 line-clamp-2 min-h-[2.5rem] lg:min-h-[3rem] leading-snug text-sm lg:text-base">
                     {product.name}
                   </h4>
                   
-                  <div className="space-y-3">
+                  <div className="space-y-2 lg:space-y-3">
                     <div className="flex items-baseline gap-1">
-                      <span className="text-2xl font-bold text-[#01042D]">{convertPriceToKwanzas(product.price, product.currency)}</span>
-                      <span className="text-lg font-semibold text-[#01042D]">Kz</span>
+                      <span className="text-lg lg:text-2xl font-bold text-[#01042D]">{convertPriceToKwanzas(product.price, product.currency)}</span>
+                      <span className="text-sm lg:text-lg font-semibold text-[#01042D]">Kz</span>
                     </div>
                     
-                    <div className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
-                      <ShoppingCart className="w-4 h-4" />
+                    <div className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 lg:py-3 px-3 lg:px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm lg:text-base">
+                      <ShoppingCart className="w-3 lg:w-4 h-3 lg:h-4" />
                       <span>Comprar</span>
                     </div>
                   </div>

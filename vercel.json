@@ -112,7 +112,7 @@
     },
     {
       "source": "/collections/drones",
-      "destination": "/importacao",
+      "destination": "/importacao/categoria/drones",
       "permanent": true
     },
     {
@@ -233,6 +233,11 @@
     {
       "source": "/products/transferencia-em-reais",
       "destination": "/transferencias",
+      "permanent": true
+    },
+    {
+      "source": "products/asus-rog-ally",
+      "destination": "/produto/asus-rog-ally-z1",
       "permanent": true
     }
   ],

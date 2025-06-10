@@ -12,6 +12,7 @@ import CheckoutPage from "./pages/CheckoutPage";
 import CheckoutCartPage from "./pages/CheckoutCartPage";
 import VisaVirtualPage from "./pages/VisaVirtualPage";
 import ImportacaoProdutosPage from "./pages/ImportacaoProdutosPage";
+import CategoryPage from "./pages/CategoryPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import PhysicalProductDetailPage from "./pages/PhysicalProductDetailPage";
 import ImportThankYouPage from "./pages/ImportThankYouPage";
@@ -65,6 +66,7 @@ export default function App() {
                       <Route path="/checkout-cart" element={<CheckoutCartPage />} />
                       <Route path="/visa-virtual" element={<VisaVirtualPage />} />
                       <Route path="/importacao" element={<ImportacaoProdutosPage />} />
+                      <Route path="/importacao/categoria/:categorySlug" element={<CategoryPage />} />
                       <Route path="/importacao/obrigado" element={<ImportThankYouPage />} />
                       <Route path="/produto/:id" element={<ProductDetailPage />} />
                       <Route path="/transferencias" element={<OutrosServicosPage />} />
