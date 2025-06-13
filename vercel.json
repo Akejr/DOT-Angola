@@ -87,12 +87,12 @@
     },
     {
       "source": "/collections/telefones",
-      "destination": "/importacao",
+      "destination": "/importacao/categoria/Apple",
       "permanent": true
     },
     {
       "source": "/collections/computadores",
-      "destination": "/importacao",
+      "destination": "/importacao/categoria/computadores",
       "permanent": true
     },
     {
@@ -236,10 +236,57 @@
       "permanent": true
     },
     {
-      "source": "products/asus-rog-ally",
+      "source": "/products/asus-rog-ally",
       "destination": "/produto/asus-rog-ally-z1",
       "permanent": true
+    },
+    {
+      "source": "/collections/gamer",
+      "destination": "/importacao/categoria/computadores",
+      "permanent": true
+    }, 
+    
+    {
+      "source": "/collections/imagem",
+      "destination": "/importacao",
+      "permanent": true
+    },
+    {
+      "source": "/collections/destaques",
+      "destination": "/mais-vendidos",
+      "permanent": true
+    },
+    {
+      "source": "/collections/componentes-de-computador",
+      "destination": "/importacao",
+      "permanent": true
+    },
+    {
+      "source": "/products/camara-sony-hd",
+      "destination": "/importacao",
+      "permanent": true
+    },
+    {
+      "source": "/collections/outros-1",
+      "destination": "/importacao",
+      "permanent": true
+    },
+    {
+      "source": "/products/camara-gopro-max",
+      "destination": "/produto/camera-gopro-hero-13-black",
+      "permanent": true
+    },
+    {
+      "source": "/products/camara-gopro-hero-11-mini-black",
+      "destination": "/produto/camera-gopro-hero-11-mini-black",
+      "permanent": true
+    },
+    {
+      "source": "/products/gopro-hero-12",
+      "destination": "/produto/camera-gopro-hero-12-black",
+      "permanent": true
     }
+
   ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
