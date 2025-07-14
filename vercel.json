@@ -288,12 +288,12 @@
     },
     {
       "source": "/collections/subscricoes/products/tv-express?variant=46947599941929",
-      "destination": "https://www.dotangola.com/gift-card/tvexpress",
+      "destination": "/gift-card/tvexpress",
       "permanent": true
     },
     {
       "source": "/collections/subscricoes/products/tv-express",
-      "destination": "https://www.dotangola.com/gift-card/tvexpress",
+      "destination": "/gift-card/tvexpress",
       "permanent": true
     }
 
