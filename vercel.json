@@ -16,6 +16,11 @@
       "permanent": true
     },
     {
+      "source": "/products/spotify",
+      "destination": "/gift-card/spotify",
+      "permanent": true
+    },
+    {
       "source": "/products/microsoft-windows-11-pro",
       "destination": "/gift-card/windows-11",
       "permanent": true
@@ -239,7 +244,8 @@
       "source": "/collections/gamer",
       "destination": "/importacao/categoria/computadores",
       "permanent": true
-    },
+    }, 
+    
     {
       "source": "/collections/imagem",
       "destination": "/importacao",
@@ -279,14 +285,30 @@
       "source": "/products/gopro-hero-12",
       "destination": "/produto/camera-gopro-hero-12-black",
       "permanent": true
-    },
-    {
-      "source": "/collections/subscricoes/products/tv-express",
-      "destination": "/gift-card/tvexpress",
-      "permanent": true
     }
   ],
   "rewrites": [
-    { "source": "/:path*", "destination": "/index.html" }
-  ]
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { 
+          "key": "Cache-Control", 
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "Pragma",
+          "value": "no-cache"
+        },
+        {
+          "key": "Expires",
+          "value": "0"
+        }
+      ]
+    }
+  ],
+  "buildCommand": "bash ./vercel.build.sh",
+  "installCommand": "true"
 } 
