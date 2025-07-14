@@ -280,6 +280,16 @@
       "source": "/products/camara-gopro-hero-11-mini-black",
       "destination": "/produto/camera-gopro-hero-11-mini-black",
       "permanent": true
+    }, 
+    {
+      "source": "/collections/subscricoes/products/tv-express?variant=46947599941929",
+      "destination": "/gift-card/tvexpress",
+      "permanent": true
+    }, 
+    {
+      "source": "/collections/subscricoes/products/tv-express",
+      "destination": "/gift-card/tvexpress",
+      "permanent": true
     },
     {
       "source": "/products/gopro-hero-12",
