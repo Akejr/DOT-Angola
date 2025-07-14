@@ -282,11 +282,6 @@
       "permanent": true
     }, 
     {
-      "source": "/collections/subscricoes/products/tv-express?variant=46947599941929",
-      "destination": "/gift-card/tvexpress",
-      "permanent": true
-    }, 
-    {
       "source": "/collections/subscricoes/products/tv-express",
       "destination": "/gift-card/tvexpress",
       "permanent": true
