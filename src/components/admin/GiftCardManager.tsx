@@ -279,7 +279,7 @@ export default function GiftCardManager() {
                   <input
                     type="text"
                     placeholder="Pesquisar gift cards..."
-                    className="w-full pl-9 sm:pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#01042D] focus:border-[#01042D] h-8 sm:h-10"
+                    className="w-full pl-9 sm:pl-10 pr-4 py-2 border border-gray-200 rounded-xl [font-size:16px] sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#01042D] focus:border-[#01042D] h-8 sm:h-10"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -291,7 +291,7 @@ export default function GiftCardManager() {
                 <select
                   value={selectedCategory || ''}
                   onChange={(e) => setSelectedCategory(e.target.value || null)}
-                  className="appearance-none pl-9 pr-8 py-2 border border-gray-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#01042D] focus:border-[#01042D] bg-white w-full sm:w-auto h-8 sm:h-10"
+                  className="appearance-none pl-9 pr-8 py-2 border border-gray-200 rounded-xl [font-size:16px] sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#01042D] focus:border-[#01042D] bg-white w-full sm:w-auto h-8 sm:h-10"
                 >
                   <option value="">Todas as categorias</option>
                   {categories.map(category => (

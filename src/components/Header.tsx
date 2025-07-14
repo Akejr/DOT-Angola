@@ -86,17 +86,18 @@ const Header = () => {
 
   useEffect(() => {
     // Função para lidar com cliques fora do container de pesquisa
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       // Não fechar se estiver navegando
       if (isNavigating) return;
       
-      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+      const target = event.target as HTMLElement;
+      
+      if (searchContainerRef.current && !searchContainerRef.current.contains(target)) {
         setShowResults(false);
       }
       
       // Fechar pesquisa móvel quando clicar fora, mas não se estiver clicando em um resultado
-      if (mobileSearchRef.current && !mobileSearchRef.current.contains(event.target as Node)) {
-        const target = event.target as HTMLElement;
+      if (mobileSearchRef.current && !mobileSearchRef.current.contains(target)) {
         // Verificar se o clique foi em um resultado de pesquisa
         if (!target.closest('[data-search-result]')) {
           setShowMobileSearch(false);
@@ -104,12 +105,14 @@ const Header = () => {
       }
     };
 
-    // Adicionar event listener
+    // Adicionar event listeners para mouse e touch
     document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
     
-    // Limpar event listener
+    // Limpar event listeners
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
     };
   }, [isNavigating]);
 
@@ -251,30 +254,104 @@ const Header = () => {
   };
 
   // Função específica para lidar com cliques nos resultados mobile
-  const handleMobileResultClick = (result: SearchResult) => {
-    console.log('Clique no resultado mobile:', result.type, result.data);
+  const handleMobileResultClick = (result: SearchResult, event?: React.MouseEvent | React.TouchEvent) => {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                     window.innerWidth <= 768;
+    // console.log('Clique no resultado mobile:', result.type, result.data, 'isMobile:', isMobile);
+    
+    // Prevenir propagação do evento
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
     
     setIsNavigating(true);
     setShowResults(false);
     setSearchTerm('');
     setShowMobileSearch(false);
     
+    // Função para gerar slug seguro
+    const generateSafeSlug = (text: string): string => {
+      return text
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim();
+    };
+    
     // Navegar usando React Router
     let targetPath = '';
     if (result.type === 'gift_card') {
       const giftCard = result.data as GiftCard;
-      targetPath = `/gift-card/${giftCard.slug || giftCard.id}`;
+      const identifier = giftCard.slug || generateSafeSlug(giftCard.name) || giftCard.id;
+      targetPath = `/gift-card/${identifier}`;
+      // console.log('Gift Card data:', { id: giftCard.id, slug: giftCard.slug, name: giftCard.name, identifier });
     } else {
       const product = result.data as PhysicalProduct;
-      targetPath = `/produto/${product.slug || product.id}`;
+      const identifier = product.slug || generateSafeSlug(product.name) || product.id;
+      targetPath = `/produto/${identifier}`;
+      // console.log('Physical Product data:', { id: product.id, slug: product.slug, name: product.name, identifier });
     }
     
-    navigate(targetPath);
+    // console.log('Navegando para:', targetPath);
+    
+    // Validar se o path é válido
+    if (!targetPath || targetPath === '/undefined' || targetPath === '/null') {
+      // console.error('Path inválido:', targetPath, 'para resultado:', result);
+      setIsNavigating(false);
+      return;
+    }
+    
+    // Verificar se o path contém caracteres válidos
+    const validPathPattern = /^\/[a-zA-Z0-9\-_\/]+$/;
+    if (!validPathPattern.test(targetPath)) {
+      // console.error('Path contém caracteres inválidos:', targetPath);
+      setIsNavigating(false);
+      return;
+    }
+    
+    // Navegação imediata para mobile
+    if (isMobile) {
+      // console.log('Dispositivo mobile detectado, usando navegação imediata');
+      try {
+        window.location.href = targetPath;
+        return;
+      } catch (error) {
+        // console.error('Erro na navegação mobile:', error);
+        setIsNavigating(false);
+        return;
+      }
+    }
+    
+    // Para desktop, usar React Router com delay
+    setTimeout(() => {
+      try {
+        // console.log('Tentando navegar com React Router para:', targetPath);
+        
+        if (typeof navigate === 'function') {
+          navigate(targetPath);
+          // console.log('Navegação com React Router bem sucedida');
+        } else {
+          throw new Error('Navigate function not available');
+        }
+      } catch (error) {
+        // console.error('Erro na navegação com React Router, tentando window.location:', error);
+        try {
+          window.location.assign(targetPath);
+        } catch (fallbackError) {
+          // console.error('Erro no fallback, tentando href:', fallbackError);
+          window.location.href = targetPath;
+        }
+      }
+    }, 50);
     
     // Reset do estado de navegação
     setTimeout(() => {
       setIsNavigating(false);
-    }, 500);
+    }, 600);
   };
 
   const getResultImage = (result: SearchResult) => {
@@ -554,8 +631,24 @@ const Header = () => {
                     <div
                       key={result.data.id}
                       data-search-result="true"
-                      className="block w-full border-b border-gray-100 last:border-0 p-3 hover:bg-gray-50 cursor-pointer transition-colors duration-150 text-left relative z-[10001]"
-                      onClick={() => handleMobileResultClick(result)}
+                      className="block w-full border-b border-gray-100 last:border-0 p-3 hover:bg-gray-50 active:bg-gray-100 cursor-pointer transition-colors duration-150 text-left relative z-[10001] touch-manipulation"
+                      onClick={(e) => {
+                        // Para dispositivos sem touch, usar click normal
+                        if (!('ontouchstart' in window)) {
+                          handleMobileResultClick(result, e);
+                        }
+                      }}
+                      onTouchStart={(e) => {
+                        e.preventDefault();
+                        e.currentTarget.style.backgroundColor = '#f9fafb';
+                        // console.log('Touch start no resultado:', result.data.name);
+                        // Executar ação no touch start para melhor responsividade
+                        handleMobileResultClick(result, e);
+                      }}
+                      onTouchEnd={(e) => {
+                        e.currentTarget.style.backgroundColor = '';
+                        // console.log('Touch end no resultado:', result.data.name);
+                      }}
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">

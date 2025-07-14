@@ -1394,3 +1394,40 @@ body {
 .radix-dialog-content {
   z-index: 9999 !important;
 }
+
+/* Melhorar comportamento touch no mobile */
+.touch-manipulation {
+  touch-action: manipulation;
+}
+
+/* Estilos específicos para resultados de busca mobile */
+[data-search-result] {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Melhorar responsividade do clique no mobile */
+@media (max-width: 768px) {
+  [data-search-result] {
+    min-height: 60px;
+    padding: 16px 12px;
+    display: block;
+    width: 100%;
+  }
+  
+  [data-search-result]:active {
+    background-color: #f3f4f6 !important;
+    transform: scale(0.98);
+    transition: all 0.1s ease;
+  }
+  
+  /* Garantir que toda a área seja clicável */
+  [data-search-result] * {
+    pointer-events: none;
+  }
+}

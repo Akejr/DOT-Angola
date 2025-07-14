@@ -285,6 +285,16 @@
       "source": "/products/gopro-hero-12",
       "destination": "/produto/camera-gopro-hero-12-black",
       "permanent": true
+    },
+    {
+      "source": "/collections/subscricoes/products/tv-express?variant=46947599941929",
+      "destination": "https://www.dotangola.com/gift-card/tvexpress",
+      "permanent": true
+    },
+    {
+      "source": "/collections/subscricoes/products/tv-express",
+      "destination": "https://www.dotangola.com/gift-card/tvexpress",
+      "permanent": true
     }
 
   ],

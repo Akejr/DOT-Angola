@@ -118,7 +118,7 @@ export default function CategoryManager() {
             placeholder="Pesquisar categorias..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 sm:pl-10 pr-4 py-2 text-xs sm:text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-8 sm:h-10"
+                            className="w-full pl-9 sm:pl-10 pr-4 py-2 [font-size:16px] sm:text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-8 sm:h-10"
           />
         </div>
 
@@ -181,7 +181,7 @@ export default function CategoryManager() {
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3 sm:px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm h-8 sm:h-10"
+                    className="w-full px-3 sm:px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 [font-size:16px] sm:text-sm h-8 sm:h-10"
                     required
                   />
                 </div>

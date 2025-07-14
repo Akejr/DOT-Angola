@@ -5,7 +5,10 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Configurações do Supabase não encontradas para AutoSEOUpdater');
+  // Apenas log se for ambiente de desenvolvimento
+  if (import.meta.env.DEV) {
+    console.error('Configurações do Supabase não encontradas para AutoSEOUpdater');
+  }
 }
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -37,20 +40,21 @@ interface CategoryForSEO {
 
 class AutoSEOUpdater {
   private lastUpdate: number = 0;
-  private updateInterval: number = 5 * 60 * 1000; // 5 minutos
+  private updateInterval: number = 30 * 60 * 1000; // 30 minutos (reduzido de 5 para 30)
   private isMonitoring: boolean = false;
+  private enableLogs: boolean = false; // Desabilitar logs por padrão
 
   /**
    * Inicia o monitoramento automático de produtos
    */
   startMonitoring() {
     if (this.isMonitoring) {
-      console.log('SEO Auto-updater já está monitorando');
+      if (this.enableLogs) console.log('SEO Auto-updater já está monitorando');
       return;
     }
 
     this.isMonitoring = true;
-    console.log('🔍 SEO Auto-updater iniciado - Monitorando novos produtos...');
+    if (this.enableLogs) console.log('🔍 SEO Auto-updater iniciado - Monitorando novos produtos...');
     
     // Verificação inicial
     this.checkForUpdates();
@@ -66,7 +70,20 @@ class AutoSEOUpdater {
    */
   stopMonitoring() {
     this.isMonitoring = false;
-    console.log('⏹️ SEO Auto-updater parado');
+    if (this.enableLogs) console.log('⏹️ SEO Auto-updater parado');
+  }
+
+  /**
+   * Habilita ou desabilita logs do SEO updater
+   */
+  setLogsEnabled(enabled: boolean) {
+    this.enableLogs = enabled;
+    if (this.enableLogs) {
+      console.log('📝 Logs do SEO Auto-updater habilitados');
+      console.log('💡 Para inicializar o sistema: initializeAutoSEO()');
+    } else {
+      console.log('🔇 Logs do SEO Auto-updater desabilitados');
+    }
   }
 
   /**
@@ -79,20 +96,20 @@ class AutoSEOUpdater {
       // Verificar novos produtos
       const newProducts = await this.getNewProducts(this.lastUpdate);
       if (newProducts.length > 0) {
-        console.log(`🆕 ${newProducts.length} novos produtos detectados:`, newProducts.map(p => p.name));
+        if (this.enableLogs) console.log(`🆕 ${newProducts.length} novos produtos detectados:`, newProducts.map(p => p.name));
         await this.updateSEOForNewProducts(newProducts);
       }
 
       // Verificar novas categorias
       const newCategories = await this.getNewCategories(this.lastUpdate);
       if (newCategories.length > 0) {
-        console.log(`🆕 ${newCategories.length} novas categorias detectadas:`, newCategories.map(c => c.name));
+        if (this.enableLogs) console.log(`🆕 ${newCategories.length} novas categorias detectadas:`, newCategories.map(c => c.name));
         await this.updateSEOForNewCategories(newCategories);
       }
 
       this.lastUpdate = now;
     } catch (error) {
-      console.error('❌ Erro ao verificar atualizações de SEO:', error);
+      if (this.enableLogs) console.error('❌ Erro ao verificar atualizações de SEO:', error);
     }
   }
 
@@ -121,7 +138,7 @@ class AutoSEOUpdater {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Erro ao buscar novos produtos:', error);
+      if (this.enableLogs) console.error('Erro ao buscar novos produtos:', error);
       return [];
     }
 
@@ -146,7 +163,7 @@ class AutoSEOUpdater {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Erro ao buscar novas categorias:', error);
+              if (this.enableLogs) console.error('Erro ao buscar novas categorias:', error);
       return [];
     }
 
@@ -162,17 +179,19 @@ class AutoSEOUpdater {
         // Gerar SEO para o produto
         const seoData = seoService.generateProductSEO(product);
         
-        // Log das otimizações aplicadas
-        console.log(`✅ SEO atualizado para: ${product.name}`);
-        console.log(`   📝 Título: ${seoData.title}`);
-        console.log(`   🔗 Palavras-chave: ${seoData.keywords.slice(0, 5).join(', ')}...`);
-        console.log(`   📊 Dados estruturados: Produto Schema.org`);
+        // Log das otimizações aplicadas (apenas se logs estiverem habilitados)
+        if (this.enableLogs) {
+          console.log(`✅ SEO atualizado para: ${product.name}`);
+          console.log(`   📝 Título: ${seoData.title}`);
+          console.log(`   🔗 Palavras-chave: ${seoData.keywords.slice(0, 5).join(', ')}...`);
+          console.log(`   📊 Dados estruturados: Produto Schema.org`);
+        }
         
         // Aqui você poderia salvar os dados SEO no banco se necessário
         await this.saveSEOMetadata(product.id, seoData, 'product');
         
       } catch (error) {
-        console.error(`❌ Erro ao atualizar SEO para ${product.name}:`, error);
+        if (this.enableLogs) console.error(`❌ Erro ao atualizar SEO para ${product.name}:`, error);
       }
     }
   }
@@ -201,14 +220,16 @@ class AutoSEOUpdater {
 
         const seoData = seoService.generateCategorySEO(category, formattedProducts);
         
-        console.log(`✅ SEO atualizado para categoria: ${category.name}`);
-        console.log(`   📝 Título: ${seoData.title}`);
-        console.log(`   🔗 Palavras-chave: ${seoData.keywords.slice(0, 5).join(', ')}...`);
+        if (this.enableLogs) {
+          console.log(`✅ SEO atualizado para categoria: ${category.name}`);
+          console.log(`   📝 Título: ${seoData.title}`);
+          console.log(`   🔗 Palavras-chave: ${seoData.keywords.slice(0, 5).join(', ')}...`);
+        }
         
         await this.saveSEOMetadata(category.id, seoData, 'category');
         
       } catch (error) {
-        console.error(`❌ Erro ao atualizar SEO para categoria ${category.name}:`, error);
+        if (this.enableLogs) console.error(`❌ Erro ao atualizar SEO para categoria ${category.name}:`, error);
       }
     }
   }
@@ -236,12 +257,12 @@ class AutoSEOUpdater {
         });
 
       if (error && !error.message.includes('relation "seo_metadata" does not exist')) {
-        console.error('Erro ao salvar metadados SEO:', error);
+        if (this.enableLogs) console.error('Erro ao salvar metadados SEO:', error);
       }
     } catch (error) {
       // Tabela opcional - não interromper se não existir
       if (!error.message?.includes('relation "seo_metadata" does not exist')) {
-        console.error('Erro ao salvar metadados SEO:', error);
+        if (this.enableLogs) console.error('Erro ao salvar metadados SEO:', error);
       }
     }
   }
@@ -250,7 +271,7 @@ class AutoSEOUpdater {
    * Força atualização imediata de todos os produtos
    */
   async forceFullUpdate() {
-    console.log('🔄 Forçando atualização completa de SEO...');
+    if (this.enableLogs) console.log('🔄 Forçando atualização completa de SEO...');
     
     try {
       // Buscar todos os produtos ativos
@@ -269,7 +290,7 @@ class AutoSEOUpdater {
         .select('id, name, description');
 
       if (products && products.length > 0) {
-        console.log(`🔄 Atualizando SEO para ${products.length} produtos...`);
+        if (this.enableLogs) console.log(`🔄 Atualizando SEO para ${products.length} produtos...`);
         // Converter dados para formato correto
         const formattedProducts = products.map(product => ({
           ...product,
@@ -280,13 +301,13 @@ class AutoSEOUpdater {
       }
 
       if (categories && categories.length > 0) {
-        console.log(`🔄 Atualizando SEO para ${categories.length} categorias...`);
+        if (this.enableLogs) console.log(`🔄 Atualizando SEO para ${categories.length} categorias...`);
         await this.updateSEOForNewCategories(categories);
       }
 
-      console.log('✅ Atualização completa de SEO concluída!');
+      if (this.enableLogs) console.log('✅ Atualização completa de SEO concluída!');
     } catch (error) {
-      console.error('❌ Erro na atualização completa:', error);
+              if (this.enableLogs) console.error('❌ Erro na atualização completa:', error);
     }
   }
 
@@ -304,25 +325,27 @@ class AutoSEOUpdater {
         .from('physical_product_categories')
         .select('id, name, created_at');
 
-      console.log('\n📊 RELATÓRIO SEO ATUAL:');
-      console.log('=======================');
-      console.log(`✅ Produtos ativos: ${products?.length || 0}`);
-      console.log(`✅ Categorias: ${categories?.length || 0}`);
-      
       let recentProductsCount = 0;
       if (products && products.length > 0) {
         const recentProducts = products.filter(p => 
           new Date(p.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
         );
         recentProductsCount = recentProducts.length;
-        console.log(`🆕 Produtos adicionados nos últimos 7 dias: ${recentProductsCount}`);
         
-        if (recentProducts.length > 0) {
-          console.log('   Produtos recentes:');
-          recentProducts.forEach(p => {
-            const categoryName = Array.isArray(p.category) && p.category.length > 0 ? p.category[0].name : 'Sem categoria';
-            console.log(`   - ${p.name} (${categoryName})`);
-          });
+        if (this.enableLogs) {
+          console.log('\n📊 RELATÓRIO SEO ATUAL:');
+          console.log('=======================');
+          console.log(`✅ Produtos ativos: ${products?.length || 0}`);
+          console.log(`✅ Categorias: ${categories?.length || 0}`);
+          console.log(`🆕 Produtos adicionados nos últimos 7 dias: ${recentProductsCount}`);
+          
+          if (recentProducts.length > 0) {
+            console.log('   Produtos recentes:');
+            recentProducts.forEach(p => {
+              const categoryName = Array.isArray(p.category) && p.category.length > 0 ? p.category[0].name : 'Sem categoria';
+              console.log(`   - ${p.name} (${categoryName})`);
+            });
+          }
         }
       }
 
@@ -331,8 +354,10 @@ class AutoSEOUpdater {
         p.name.toLowerCase().includes('macbook') ||
         p.name.toLowerCase().includes('rog ally')) || [];
       
-      console.log(`🌟 Produtos com alta otimização SEO: ${featuredProducts.length}`);
-      console.log('=======================\n');
+      if (this.enableLogs) {
+        console.log(`🌟 Produtos com alta otimização SEO: ${featuredProducts.length}`);
+        console.log('=======================\n');
+      }
 
       return {
         totalProducts: products?.length || 0,
@@ -341,7 +366,7 @@ class AutoSEOUpdater {
         featuredProducts: featuredProducts.length
       };
     } catch (error) {
-      console.error('❌ Erro ao gerar relatório SEO:', error);
+              if (this.enableLogs) console.error('❌ Erro ao gerar relatório SEO:', error);
       return null;
     }
   }
@@ -352,6 +377,8 @@ export const autoSEOUpdater = new AutoSEOUpdater();
 
 // Função para inicializar automaticamente
 export function initializeAutoSEO() {
+  console.info('🚀 Inicializando sistema de SEO automático...');
+  
   // Aguardar um pouco para o app carregar
   setTimeout(() => {
     autoSEOUpdater.startMonitoring();
@@ -361,6 +388,26 @@ export function initializeAutoSEO() {
       autoSEOUpdater.generateSEOReport();
     }, 3000);
   }, 2000);
+}
+
+// Função para habilitar logs manualmente no console
+export function enableSEOLogs() {
+  autoSEOUpdater.setLogsEnabled(true);
+}
+
+// Função para desabilitar logs manualmente no console
+export function disableSEOLogs() {
+  autoSEOUpdater.setLogsEnabled(false);
+}
+
+// Adicionar funções globais para facilitar o uso no console
+// Para habilitar logs: enableSEOLogs()
+// Para desabilitar logs: disableSEOLogs()
+// Para inicializar: initializeAutoSEO()
+if (typeof window !== 'undefined') {
+  (window as any).enableSEOLogs = enableSEOLogs;
+  (window as any).disableSEOLogs = disableSEOLogs;
+  (window as any).initializeAutoSEO = initializeAutoSEO;
 }
 
 export default autoSEOUpdater; 

@@ -178,7 +178,7 @@ export default function SalesManager() {
       try {
         const { data, error } = await supabase
           .from('gift_cards')
-          .select('id, name, plans:gift_card_plans(id, price, name)');
+          .select('id, name, plans:gift_card_plans(id, price, name, currency)');
         
         if (error) throw error;
         console.log('Produtos carregados:', data); // Adicionar log para verificar se os produtos estão sendo carregados
@@ -189,6 +189,42 @@ export default function SalesManager() {
       }
     }
   });
+
+  // Buscar taxas de câmbio
+  const { data: exchangeRates = [] } = useQuery({
+    queryKey: ['exchange-rates'],
+    queryFn: async () => {
+      try {
+        const { data, error } = await supabase
+          .from('exchange_rates')
+          .select('*')
+          .order('currency');
+        
+        if (error) throw error;
+        return data || [];
+      } catch (error) {
+        console.error('Erro ao buscar taxas de câmbio:', error);
+        return [];
+      }
+    }
+  });
+
+  // Função para converter preço para Kwanzas
+  const convertToKwanzas = (price: number, currency: string): number => {
+    if (currency === 'KWZ') {
+      return price;
+    }
+    
+    const rate = exchangeRates.find(r => r.currency === currency);
+    if (rate) {
+      const converted = price * rate.rate;
+      console.log(`Convertendo ${price} ${currency} para ${converted.toFixed(2)} KWZ (taxa: ${rate.rate})`);
+      return converted;
+    }
+    
+    console.warn(`Taxa de câmbio não encontrada para ${currency}, usando preço original`);
+    return price;
+  };
 
   // Função para buscar vendas
   const { 
@@ -363,14 +399,18 @@ export default function SalesManager() {
         } else {
           // Se o produto não existir, adicionar como novo item
           const planPrice = parseFloat(selectedPlanData.price.toString()) || 0;
+          const planCurrency = selectedPlanData.currency || 'EUR';
           const planName = selectedPlanData.name || 'Plano Básico';
+          
+          // Converter preço para Kwanzas
+          const priceInKwanzas = convertToKwanzas(planPrice, planCurrency);
           
           const newItem: SaleItem = {
             id: crypto.randomUUID(),
             product_name: `${product.name} - ${planName}`,
             quantity: numericQuantity,
-            unit_price: planPrice,
-            total_price: numericQuantity * planPrice,
+            unit_price: priceInKwanzas,
+            total_price: numericQuantity * priceInKwanzas,
             profit: numericProfit
           };
 
@@ -992,7 +1032,7 @@ export default function SalesManager() {
                 </>
               )}
             </Button>
-            <Button onClick={() => setIsAddSaleDialogOpen(true)} className="w-full sm:w-auto text-xs sm:text-sm" size="sm">
+            <Button onClick={() => setIsAddSaleDialogOpen(true)} className="w-full sm:w-auto [font-size:16px] sm:text-sm" size="sm">
               <Plus className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">Nova Venda</span>
               <span className="sm:hidden">Nova</span>
@@ -1056,7 +1096,7 @@ export default function SalesManager() {
             <Input
               type="search"
               placeholder="Buscar vendas..."
-              className="pl-8 sm:pl-10 text-xs sm:text-sm h-8 sm:h-10"
+              className="pl-8 sm:pl-10 [font-size:16px] sm:text-sm h-8 sm:h-10"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -1064,7 +1104,7 @@ export default function SalesManager() {
           
           <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-2">
             <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-              <SelectTrigger className="w-full sm:w-[140px] lg:w-[180px] text-xs sm:text-sm h-8 sm:h-10">
+              <SelectTrigger className="w-full sm:w-[140px] lg:w-[180px] [font-size:16px] sm:text-sm h-8 sm:h-10">
                 <SelectValue placeholder="Mês" />
               </SelectTrigger>
               <SelectContent>
@@ -1084,7 +1124,7 @@ export default function SalesManager() {
             </Select>
             
             <Select value={selectedYear} onValueChange={setSelectedYear}>
-              <SelectTrigger className="w-full sm:w-[120px] lg:w-[140px] text-xs sm:text-sm h-8 sm:h-10">
+              <SelectTrigger className="w-full sm:w-[120px] lg:w-[140px] [font-size:16px] sm:text-sm h-8 sm:h-10">
                 <SelectValue placeholder="Ano" />
               </SelectTrigger>
               <SelectContent>
@@ -1315,7 +1355,7 @@ export default function SalesManager() {
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                   placeholder="Ex: João Silva"
-                  className="text-xs sm:text-sm h-8 sm:h-10"
+                  className="[font-size:16px] sm:text-sm h-8 sm:h-10"
                 />
               </div>
               <div className="space-y-2">
@@ -1325,7 +1365,7 @@ export default function SalesManager() {
                   value={customerLocation}
                   onChange={(e) => setCustomerLocation(e.target.value)}
                   placeholder="Ex: Luanda, Angola"
-                  className="text-xs sm:text-sm h-8 sm:h-10"
+                  className="[font-size:16px] sm:text-sm h-8 sm:h-10"
                 />
               </div>
             </div>
@@ -1337,7 +1377,7 @@ export default function SalesManager() {
                 <PopoverTrigger asChild>
                   <Button
                     variant={"outline"}
-                    className="w-full justify-start text-left font-normal text-xs sm:text-sm h-8 sm:h-10"
+                    className="w-full justify-start text-left font-normal [font-size:16px] sm:text-sm h-8 sm:h-10"
                   >
                     <CalendarIcon className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                     {date ? format(date, 'dd/MM/yyyy') : <span>Selecione uma data</span>}
@@ -1403,7 +1443,7 @@ export default function SalesManager() {
                       value={productName}
                       onChange={(e) => setProductName(e.target.value)}
                       placeholder="Ex: Drone DJI Mavic 3"
-                      className="text-xs sm:text-sm h-8 sm:h-10"
+                      className="[font-size:16px] sm:text-sm h-8 sm:h-10"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-2 sm:gap-3">
@@ -1415,7 +1455,7 @@ export default function SalesManager() {
                         min="1"
                         value={quantity}
                         onChange={(e) => setQuantity(e.target.value === '' ? '' : parseInt(e.target.value) || '')}
-                        className="text-xs sm:text-sm h-8 sm:h-10"
+                        className="[font-size:16px] sm:text-sm h-8 sm:h-10"
                       />
                     </div>
                     <div className="space-y-2">
@@ -1426,7 +1466,7 @@ export default function SalesManager() {
                         min="0"
                         value={unitPrice}
                         onChange={(e) => setUnitPrice(e.target.value === '' ? '' : parseFloat(e.target.value) || '')}
-                        className="text-xs sm:text-sm h-8 sm:h-10"
+                        className="[font-size:16px] sm:text-sm h-8 sm:h-10"
                       />
                     </div>
                   </div>
@@ -1438,7 +1478,7 @@ export default function SalesManager() {
                       min="0"
                       value={profit}
                       onChange={(e) => setProfit(e.target.value === '' ? '' : parseFloat(e.target.value) || '')}
-                      className="text-xs sm:text-sm h-8 sm:h-10"
+                      className="[font-size:16px] sm:text-sm h-8 sm:h-10"
                     />
                   </div>
                 </div>
@@ -1456,7 +1496,7 @@ export default function SalesManager() {
                           setSelectedDatabaseProduct(null);
                           setSelectedPlan(null);
                         }}
-                        className="w-full pr-10 text-xs sm:text-sm h-8 sm:h-10"
+                        className="w-full pr-10 [font-size:16px] sm:text-sm h-8 sm:h-10"
                       />
                       {productFilter && (
                         <button
@@ -1507,14 +1547,14 @@ export default function SalesManager() {
                             console.log('Plano selecionado:', e.target.value);
                             setSelectedPlan(e.target.value);
                           }}
-                          className="w-full h-8 sm:h-10 rounded-md border border-input bg-background px-3 py-1 sm:py-2 text-xs sm:text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                          className="w-full h-8 sm:h-10 rounded-md border border-input bg-background px-3 py-1 sm:py-2 [font-size:16px] sm:text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                         >
                           <option value="" disabled>Selecione um plano</option>
                           {products
                             .find(p => p.id === selectedDatabaseProduct)?.plans
                             .map((plan) => (
                               <option key={plan.id} value={plan.id}>
-                                {plan.name || 'Plano Básico'} - {parseFloat(plan.price.toString()).toLocaleString('pt-AO')} AOA
+                                {plan.name || 'Plano Básico'} - {convertToKwanzas(plan.price, plan.currency || 'EUR').toLocaleString('pt-AO')} AOA
                               </option>
                             ))}
                         </select>
@@ -1534,7 +1574,7 @@ export default function SalesManager() {
                         min="1"
                         value={quantity}
                         onChange={(e) => setQuantity(e.target.value === '' ? '' : parseInt(e.target.value) || '')}
-                        className="text-xs sm:text-sm h-8 sm:h-10"
+                        className="[font-size:16px] sm:text-sm h-8 sm:h-10"
                       />
                     </div>
                     <div className="space-y-2">
@@ -1545,7 +1585,7 @@ export default function SalesManager() {
                         min="0"
                         value={profit}
                         onChange={(e) => setProfit(e.target.value === '' ? '' : parseFloat(e.target.value) || '')}
-                        className="text-xs sm:text-sm h-8 sm:h-10"
+                        className="[font-size:16px] sm:text-sm h-8 sm:h-10"
                       />
                     </div>
                   </div>
@@ -1554,9 +1594,9 @@ export default function SalesManager() {
               
               <Button 
                 type="button" 
-                onClick={addItemToSale} 
-                className="w-full text-xs sm:text-sm h-8 sm:h-10"
-                disabled={isAddingItem}
+                              onClick={addItemToSale} 
+              className="w-full [font-size:16px] sm:text-sm h-8 sm:h-10"
+              disabled={isAddingItem}
                 size="sm"
               >
                 {isAddingItem ? (
@@ -1789,7 +1829,7 @@ export default function SalesManager() {
                 clearForm();
                 setEditingSale(null);
               }}
-              className="w-full sm:w-auto text-xs sm:text-sm h-8 sm:h-10"
+              className="w-full sm:w-auto [font-size:16px] sm:text-sm h-8 sm:h-10"
               size="sm"
             >
               Cancelar
@@ -1798,7 +1838,7 @@ export default function SalesManager() {
               type="button" 
               onClick={handleSaveSale}
               disabled={saleItems.length === 0 || !customerName || !customerLocation || !date}
-              className="w-full sm:w-auto text-xs sm:text-sm h-8 sm:h-10"
+              className="w-full sm:w-auto [font-size:16px] sm:text-sm h-8 sm:h-10"
               size="sm"
             >
               {editingSale ? 'Salvar Alterações' : 'Salvar Venda'}

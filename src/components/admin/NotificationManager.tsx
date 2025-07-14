@@ -388,7 +388,7 @@ export default function NotificationManager() {
                     type="text"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm h-8 sm:h-10"
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 [font-size:16px] sm:text-sm h-8 sm:h-10"
                     required
                   />
                 </div>
@@ -449,7 +449,7 @@ export default function NotificationManager() {
                       type="datetime-local"
                       value={formData.expires_at}
                       onChange={(e) => setFormData({ ...formData, expires_at: e.target.value })}
-                      className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm h-8 sm:h-10"
+                      className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 [font-size:16px] sm:text-sm h-8 sm:h-10"
                     />
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
