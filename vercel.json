@@ -16,11 +16,6 @@
       "permanent": true
     },
     {
-      "source": "/products/spotify",
-      "destination": "/gift-card/spotify",
-      "permanent": true
-    },
-    {
       "source": "/products/microsoft-windows-11-pro",
       "destination": "/gift-card/windows-11",
       "permanent": true
@@ -286,17 +281,12 @@
       "permanent": true
     },
     {
-      "source": "/collections/subscricoes/products/tv-express?variant=46947599941929",
-      "destination": "/gift-card/tvexpress",
-      "permanent": true
-    },
-    {
       "source": "/collections/subscricoes/products/tv-express",
       "destination": "/gift-card/tvexpress",
       "permanent": true
     }
   ],
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/:path*", "destination": "/index.html" }
   ]
 } 
