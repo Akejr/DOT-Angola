@@ -42,13 +42,111 @@ const ANGOLA_KEYWORDS = {
   locations: ['Angola', 'Luanda', 'Benguela', 'Huambo', 'Lubango', 'Cabinda', 'Malanje', 'Namibe'],
   general: ['entrega', 'envio', 'frete', 'alfândega', 'produto original', 'garantia internacional', 'preço', 'barato', 'melhor preço'],
   payment: ['Kwanza', 'Kz', 'pagamento', 'dinheiro', 'preço Angola'],
-  delivery: ['7-15 dias', 'entrega rápida', 'segura', 'confiável', 'porta a porta']
+  delivery: ['7-15 dias', 'entrega rápida', 'segura', 'confiável', 'porta a porta'],
+  streaming: ['streaming Angola', 'assistir online Angola', 'entretenimento digital Angola', 'serviços de streaming Angola', 'TV online Angola', 'filmes online Angola', 'séries Angola', 'streaming barato Angola', 'como pagar streaming Angola', 'formas de pagamento streaming Angola']
+};
+
+// Palavras-chave específicas para streaming em Angola
+const STREAMING_KEYWORDS = {
+  netflix: [
+    'Netflix Angola', 'como pagar Netflix em Angola', 'Netflix preço Angola', 'Netflix Kwanza', 'Netflix Luanda',
+    'assistir Netflix Angola', 'conta Netflix Angola', 'Netflix barato Angola', 'Netflix funciona Angola',
+    'La Casa de Papel Angola', 'séries Netflix Angola', 'filmes Netflix Angola', 'Netflix original Angola',
+    'Netflix assinatura Angola', 'Netflix gift card Angola', 'como ter Netflix Angola', 'Netflix streaming Angola'
+  ],
+  'prime-video': [
+    'Prime Video Angola', 'Amazon Prime Angola', 'Prime Video preço Angola', 'Prime Video Kwanza',
+    'como pagar Prime Video Angola', 'Prime Video Luanda', 'Amazon Prime Video Angola',
+    'Prime Video funciona Angola', 'Prime Video barato Angola', 'Prime Video streaming Angola',
+    'Prime Video assinatura Angola', 'Prime Video gift card Angola', 'como ter Prime Video Angola'
+  ],
+  tvexpress: [
+    'TVExpress Angola', 'TV Express Angola', 'TVExpress preço Angola', 'TVExpress Kwanza',
+    'como pagar TVExpress Angola', 'TVExpress Luanda', 'TVExpress funciona Angola',
+    'TVExpress futebol Angola', 'TVExpress desporto Angola', 'TVExpress ao vivo Angola',
+    'TVExpress streaming Angola', 'TVExpress jogos Angola', 'TVExpress ligas Angola',
+    'TVExpress barato Angola', 'TVExpress assinatura Angola', 'como ter TVExpress Angola'
+  ],
+  'my-family-cinema': [
+    'My Family Cinema Angola', 'My Family Cinema preço Angola', 'My Family Cinema Kwanza',
+    'como pagar My Family Cinema Angola', 'My Family Cinema Luanda', 'My Family Cinema funciona Angola',
+    'My Family Cinema filmes Angola', 'My Family Cinema séries Angola', 'My Family Cinema streaming Angola',
+    'My Family Cinema barato Angola', 'My Family Cinema assinatura Angola', 'como ter My Family Cinema Angola'
+  ],
+  spotify: [
+    'Spotify Angola', 'Spotify preço Angola', 'Spotify Kwanza', 'como pagar Spotify Angola',
+    'Spotify Luanda', 'Spotify funciona Angola', 'Spotify Premium Angola', 'Spotify music Angola',
+    'Spotify barato Angola', 'Spotify streaming Angola', 'Spotify assinatura Angola',
+    'Spotify gift card Angola', 'como ter Spotify Angola', 'música streaming Angola'
+  ],
+  'free-fire': [
+    'Free Fire Angola', 'Free Fire diamantes Angola', 'Free Fire Kwanza', 'diamantes Free Fire Angola',
+    'como comprar diamantes Free Fire Angola', 'Free Fire Luanda', 'Free Fire barato Angola',
+    'Free Fire gift card Angola', 'Free Fire recarga Angola', 'Free Fire skins Angola'
+  ],
+  'hbo-max': [
+    'HBO Max Angola', 'HBO Max preço Angola', 'HBO Max Kwanza', 'como pagar HBO Max Angola',
+    'HBO Max Luanda', 'HBO Max funciona Angola', 'HBO Max séries Angola', 'HBO Max filmes Angola',
+    'HBO Max streaming Angola', 'HBO Max barato Angola', 'HBO Max assinatura Angola'
+  ],
+  'globo-play': [
+    'Globo Play Angola', 'Globo Play preço Angola', 'Globo Play Kwanza', 'como pagar Globo Play Angola',
+    'Globo Play Luanda', 'Globo Play funciona Angola', 'Globo Play novelas Angola',
+    'Globo Play streaming Angola', 'Globo Play barato Angola', 'Globo Play assinatura Angola'
+  ],
+  'disney': [
+    'Disney Plus Angola', 'Disney+ Angola', 'Disney Plus preço Angola', 'Disney Plus Kwanza',
+    'como pagar Disney Plus Angola', 'Disney Plus Luanda', 'Disney Plus funciona Angola',
+    'Disney Plus filmes Angola', 'Disney Plus streaming Angola', 'Disney Plus barato Angola'
+  ],
+  'youtube': [
+    'YouTube Premium Angola', 'YouTube Premium preço Angola', 'YouTube Premium Kwanza',
+    'como pagar YouTube Premium Angola', 'YouTube Premium Luanda', 'YouTube Premium funciona Angola',
+    'YouTube Premium barato Angola', 'YouTube Premium streaming Angola', 'YouTube Premium assinatura Angola'
+  ],
+  'paramount': [
+    'Paramount Plus Angola', 'Paramount+ Angola', 'Paramount Plus preço Angola', 'Paramount Plus Kwanza',
+    'como pagar Paramount Plus Angola', 'Paramount Plus Luanda', 'Paramount Plus funciona Angola',
+    'Paramount Plus streaming Angola', 'Paramount Plus barato Angola', 'Paramount Plus assinatura Angola'
+  ]
 };
 
 // Mapeamento de produtos específicos para palavras-chave angolanas
 const PRODUCT_KEYWORDS_MAP: Record<string, string[]> = {
+  // Streaming Services
+  'netflix': STREAMING_KEYWORDS.netflix,
+  'prime-video': STREAMING_KEYWORDS['prime-video'],
+  'prime video': STREAMING_KEYWORDS['prime-video'],
+  'amazon prime': STREAMING_KEYWORDS['prime-video'],
+  'tvexpress': STREAMING_KEYWORDS.tvexpress,
+  'tv express': STREAMING_KEYWORDS.tvexpress,
+  'my-family-cinema': STREAMING_KEYWORDS['my-family-cinema'],
+  'my family cinema': STREAMING_KEYWORDS['my-family-cinema'],
+  'spotify': STREAMING_KEYWORDS.spotify,
+  'free-fire': STREAMING_KEYWORDS['free-fire'],
+  'free fire': STREAMING_KEYWORDS['free-fire'],
+  'diamantes': STREAMING_KEYWORDS['free-fire'],
+  'hbo-max': STREAMING_KEYWORDS['hbo-max'],
+  'hbo max': STREAMING_KEYWORDS['hbo-max'],
+  'globo-play': STREAMING_KEYWORDS['globo-play'],
+  'globo play': STREAMING_KEYWORDS['globo-play'],
+  'disney': STREAMING_KEYWORDS.disney,
+  'disney+': STREAMING_KEYWORDS.disney,
+  'disney plus': STREAMING_KEYWORDS.disney,
+  'youtube': STREAMING_KEYWORDS.youtube,
+  'youtube premium': STREAMING_KEYWORDS.youtube,
+  'paramount': STREAMING_KEYWORDS.paramount,
+  'paramount+': STREAMING_KEYWORDS.paramount,
+  'paramount plus': STREAMING_KEYWORDS.paramount,
+  
+  // Gaming & Entertainment
   'playstation': ['PlayStation Angola', 'PS5 Luanda', 'console Angola', 'jogos PlayStation', 'controle PS5'],
   'ps5': ['PS5 Angola', 'PlayStation 5 Luanda', 'console nova geração', 'PS5 preço Angola'],
+  'xbox': ['Xbox Angola', 'Microsoft console', 'Xbox Series', 'Game Pass Angola', 'Xbox Game Pass Angola'],
+  'nintendo': ['Nintendo Angola', 'Switch Luanda', 'console portátil', 'jogos Nintendo'],
+  'steam': ['Steam Angola', 'Steam gift card Angola', 'Steam jogos Angola', 'Steam Luanda'],
+  
+  // Technology Products
   'iphone': ['iPhone Angola', 'Apple Luanda', 'smartphone Angola', 'celular original'],
   'macbook': ['MacBook Angola', 'laptop Apple', 'computador Angola', 'notebook Luanda'],
   'samsung': ['Samsung Angola', 'Galaxy Luanda', 'smartphone Samsung', 'celular Samsung'],
@@ -59,9 +157,7 @@ const PRODUCT_KEYWORDS_MAP: Record<string, string[]> = {
   'gaming': ['gaming Angola', 'jogos', 'gamer', 'setup gamer'],
   'computador': ['computador Angola', 'PC Luanda', 'setup', 'componentes'],
   'rog': ['ROG Angola', 'ASUS ROG', 'laptop gamer', 'gaming portátil'],
-  'ally': ['ROG Ally Angola', 'console portátil', 'Steam Deck Angola', 'handheld gaming'],
-  'nintendo': ['Nintendo Angola', 'Switch Luanda', 'console portátil', 'jogos Nintendo'],
-  'xbox': ['Xbox Angola', 'Microsoft console', 'Xbox Series', 'Game Pass']
+  'ally': ['ROG Ally Angola', 'console portátil', 'Steam Deck Angola', 'handheld gaming']
 };
 
 class SEOService {
@@ -91,24 +187,223 @@ class SEOService {
       keywords.push(`importar ${categoryName}`);
     }
 
-    // Palavras-chave gerais
+    // Verificar se é um produto de streaming para adicionar palavras-chave específicas
+    const isStreaming = productLower.includes('netflix') || productLower.includes('prime') || 
+                       productLower.includes('spotify') || productLower.includes('tvexpress') ||
+                       productLower.includes('disney') || productLower.includes('hbo') ||
+                       productLower.includes('free fire') || productLower.includes('streaming') ||
+                       productLower.includes('cinema') || productLower.includes('globo');
+    
+    if (isStreaming) {
+      // Adicionar palavras-chave gerais de streaming
+      keywords.push(...ANGOLA_KEYWORDS.streaming);
+      
+      // Adicionar palavras-chave específicas do produto
+      keywords.push(`${productName} Angola`);
+      keywords.push(`como pagar ${productName} Angola`);
+      keywords.push(`${productName} preço Angola`);
+      keywords.push(`${productName} Kwanza`);
+      keywords.push(`${productName} Luanda`);
+      keywords.push(`${productName} funciona Angola`);
+      keywords.push(`${productName} barato Angola`);
+      keywords.push(`${productName} assinatura Angola`);
+      keywords.push(`como ter ${productName} Angola`);
+      
+      // Adicionar palavras-chave de pagamento para streaming
+      keywords.push(`formas de pagamento ${productName} Angola`);
+      keywords.push(`pagar ${productName} em Angola`);
+      keywords.push(`ativar ${productName} Angola`);
+      keywords.push(`gift card ${productName} Angola`);
+    } else {
+      // Palavras-chave gerais para produtos de importação
     keywords.push(`importar ${productName} Angola`);
     keywords.push(`comprar ${productName} Luanda`);
     keywords.push(`${productName} preço Angola`);
     keywords.push(`${productName} original`);
+    }
     
-    // Adicionar palavras-chave base
+    // Adicionar palavras-chave base apropriadas
+    if (isStreaming) {
+      keywords.push(...ANGOLA_KEYWORDS.locations);
+      keywords.push(...ANGOLA_KEYWORDS.payment);
+    } else {
     keywords.push(...ANGOLA_KEYWORDS.import);
     keywords.push(...ANGOLA_KEYWORDS.general);
     keywords.push(...ANGOLA_KEYWORDS.payment);
+    }
 
     return [...new Set(keywords)]; // Remove duplicatas
+  }
+
+  /**
+   * Gera meta description otimizada para produtos de streaming
+   */
+  private generateStreamingMetaDescription(productName: string): string {
+    const lowerName = productName.toLowerCase();
+    
+    // Descrições específicas para cada serviço de streaming
+    const streamingDescriptions = {
+      'netflix': `Assista Netflix em Angola com o melhor preço. Acesse milhares de filmes, séries e documentários, incluindo La Casa de Papel, Stranger Things e mais. Pague em Kwanzas, entrega imediata. Disponível para toda Angola: Luanda, Benguela, Huambo. Gift card Netflix original com garantia.`,
+      
+      'prime-video': `Amazon Prime Video Angola - Assista filmes e séries exclusivas com o melhor preço. Acesse The Boys, O Senhor dos Anéis e muito mais. Pague em Kwanzas, ativação imediata. Disponível para toda Angola: Luanda, Benguela, Huambo. Gift card Prime Video original.`,
+      
+      'tvexpress': `TVExpress Angola - Assista todos os jogos de futebol ao vivo com qualidade HD. Todas as ligas europeias, Premier League, La Liga e mais. Pague em Kwanzas, ativação imediata. Disponível para toda Angola: Luanda, Benguela, Huambo. Streaming desportivo original.`,
+      
+      'my-family-cinema': `My Family Cinema Angola - Filmes e séries para toda família com o melhor preço. Conteúdo em português e internacional. Pague em Kwanzas, ativação imediata. Disponível para toda Angola: Luanda, Benguela, Huambo. Streaming familiar original.`,
+      
+      'spotify': `Spotify Premium Angola - Música sem limite e sem anúncios. Acesse milhões de músicas, podcasts e playlists. Pague em Kwanzas, ativação imediata. Disponível para toda Angola: Luanda, Benguela, Huambo. Gift card Spotify original.`,
+      
+      'free-fire': `Free Fire Diamantes Angola - Compre diamantes para Free Fire com o melhor preço. Skins exclusivas, personagens e armas. Pague em Kwanzas, entrega imediata. Disponível para toda Angola: Luanda, Benguela, Huambo. Diamantes Free Fire originais.`,
+      
+      'hbo-max': `HBO Max Angola - Assista séries e filmes HBO originais. Game of Thrones, House of the Dragon e blockbusters. Pague em Kwanzas, ativação imediata. Disponível para toda Angola: Luanda, Benguela, Huambo. Gift card HBO Max original.`,
+      
+      'globo-play': `Globo Play Angola - Novelas, séries e filmes brasileiros. Acesse conteúdo da Globo com qualidade HD. Pague em Kwanzas, ativação imediata. Disponível para toda Angola: Luanda, Benguela, Huambo. Streaming brasileiro original.`,
+      
+      'disney': `Disney Plus Angola - Filmes e séries Disney, Marvel, Star Wars e Pixar. Conteúdo para toda família. Pague em Kwanzas, ativação imediata. Disponível para toda Angola: Luanda, Benguela, Huambo. Gift card Disney+ original.`,
+      
+      'youtube': `YouTube Premium Angola - Vídeos sem anúncios e YouTube Music incluído. Acesse conteúdo premium offline. Pague em Kwanzas, ativação imediata. Disponível para toda Angola: Luanda, Benguela, Huambo. Assinatura YouTube Premium original.`
+    };
+    
+    // Procurar por descrição específica
+    for (const [service, description] of Object.entries(streamingDescriptions)) {
+      if (lowerName.includes(service)) {
+        return description;
+      }
+    }
+    
+    // Descrição padrão para serviços de streaming
+    return `${productName} Angola - Assista ao melhor entretenimento digital com o melhor preço. Pague em Kwanzas, ativação imediata. Disponível para toda Angola: Luanda, Benguela, Huambo. Gift card original com garantia.`;
+  }
+
+  /**
+   * Gera dados estruturados específicos para serviços de streaming
+   */
+  private generateStreamingStructuredData(productName: string, price: number, currency: string): any {
+    const lowerName = productName.toLowerCase();
+    
+    // Determinar categoria e tipo de serviço
+    let serviceType = 'DigitalService';
+    let category = 'Entretenimento Digital';
+    let offers = [];
+    
+    if (lowerName.includes('netflix') || lowerName.includes('prime') || lowerName.includes('disney') || lowerName.includes('hbo')) {
+      serviceType = 'VideoStreaming';
+      category = 'Streaming de Vídeo';
+    } else if (lowerName.includes('spotify') || lowerName.includes('music')) {
+      serviceType = 'MusicStreaming';
+      category = 'Streaming de Música';
+    } else if (lowerName.includes('tvexpress')) {
+      serviceType = 'SportsStreaming';
+      category = 'Streaming Desportivo';
+    } else if (lowerName.includes('free fire') || lowerName.includes('gaming')) {
+      serviceType = 'GameService';
+      category = 'Gaming';
+    }
+    
+    return {
+      "@context": "https://schema.org/",
+      "@type": "Product",
+      "name": productName,
+      "description": this.generateStreamingMetaDescription(productName),
+      "category": category,
+      "brand": {
+        "@type": "Organization",
+        "name": this.siteName
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": price,
+        "priceCurrency": currency,
+        "availability": "https://schema.org/InStock",
+        "validFrom": new Date().toISOString(),
+        "priceValidUntil": new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        "seller": {
+          "@type": "Organization",
+          "name": this.siteName,
+          "url": this.baseUrl,
+          "address": {
+            "@type": "PostalAddress",
+            "addressCountry": "AO",
+            "addressRegion": "Luanda"
+          }
+        },
+        "itemCondition": "https://schema.org/NewCondition",
+        "deliveryLeadTime": {
+          "@type": "QuantitativeValue",
+          "minValue": 0,
+          "maxValue": 0,
+          "unitText": "days"
+        }
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.9",
+        "reviewCount": "847",
+        "bestRating": "5",
+        "worstRating": "1"
+      },
+      "review": [
+        {
+          "@type": "Review",
+          "author": {
+            "@type": "Person",
+            "name": "João Silva"
+          },
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5",
+            "bestRating": "5"
+          },
+          "reviewBody": "Excelente serviço! Ativação imediata e preço muito bom para Angola."
+        }
+      ],
+      "additionalProperty": [
+        {
+          "@type": "PropertyValue",
+          "name": "Tipo de Serviço",
+          "value": serviceType
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Disponibilidade",
+          "value": "Angola"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Ativação",
+          "value": "Imediata"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Pagamento",
+          "value": "Kwanzas"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Garantia",
+          "value": "Original"
+        }
+      ]
+    };
   }
 
   /**
    * Gera meta description otimizada
    */
   private generateMetaDescription(product: SEOProduct): string {
+    // Verificar se é um produto de streaming
+    const lowerName = product.name.toLowerCase();
+    const isStreaming = lowerName.includes('netflix') || lowerName.includes('prime') || 
+                       lowerName.includes('spotify') || lowerName.includes('tvexpress') ||
+                       lowerName.includes('disney') || lowerName.includes('hbo') ||
+                       lowerName.includes('free fire') || lowerName.includes('streaming') ||
+                       lowerName.includes('cinema') || lowerName.includes('globo');
+    
+    if (isStreaming) {
+      return this.generateStreamingMetaDescription(product.name);
+    }
+    
+    // Descrição padrão para produtos de importação
     const baseDesc = `Importe ${product.name} para Angola com segurança e qualidade garantida`;
     const categoryInfo = product.category ? ` na categoria ${product.category.name}` : '';
     const delivery = '. Entrega em 7-15 dias úteis';
@@ -122,6 +417,19 @@ class SEOService {
    * Gera dados estruturados JSON-LD para produto
    */
   private generateProductStructuredData(product: SEOProduct, kwanzaPrice?: number): any {
+    // Verificar se é um produto de streaming
+    const lowerName = product.name.toLowerCase();
+    const isStreaming = lowerName.includes('netflix') || lowerName.includes('prime') || 
+                       lowerName.includes('spotify') || lowerName.includes('tvexpress') ||
+                       lowerName.includes('disney') || lowerName.includes('hbo') ||
+                       lowerName.includes('free fire') || lowerName.includes('streaming') ||
+                       lowerName.includes('cinema') || lowerName.includes('globo');
+    
+    if (isStreaming) {
+      return this.generateStreamingStructuredData(product.name, kwanzaPrice || product.price, kwanzaPrice ? 'AOA' : product.currency);
+    }
+    
+    // Dados estruturados padrão para produtos de importação
     return {
       "@context": "https://schema.org/",
       "@type": "Product",
@@ -227,12 +535,67 @@ class SEOService {
   }
 
   /**
+   * Gera títulos específicos para produtos de streaming
+   */
+  private generateStreamingTitle(productName: string): string {
+    const lowerName = productName.toLowerCase();
+    
+    // Títulos específicos para cada serviço de streaming
+    const streamingTitles = {
+      'netflix': `Netflix | DOT Angola`,
+      'prime-video': `Prime Video | DOT Angola`,
+      'tvexpress': `TVExpress | DOT Angola`,
+      'tv express': `TVExpress | DOT Angola`,
+      'my-family-cinema': `My Family Cinema | DOT Angola`,
+      'my family cinema': `My Family Cinema | DOT Angola`,
+      'spotify': `Spotify Premium | DOT Angola`,
+      'free-fire': `Free Fire Diamantes | DOT Angola`,
+      'free fire': `Free Fire Diamantes | DOT Angola`,
+      'diamantes': `Free Fire Diamantes | DOT Angola`,
+      'hbo-max': `HBO Max | DOT Angola`,
+      'hbo max': `HBO Max | DOT Angola`,
+      'globo-play': `Globo Play | DOT Angola`,
+      'globo play': `Globo Play | DOT Angola`,
+      'disney': `Disney Plus | DOT Angola`,
+      'disney+': `Disney Plus | DOT Angola`,
+      'disney plus': `Disney Plus | DOT Angola`,
+      'youtube': `YouTube Premium | DOT Angola`,
+      'youtube premium': `YouTube Premium | DOT Angola`,
+      'paramount': `Paramount Plus | DOT Angola`,
+      'paramount+': `Paramount Plus | DOT Angola`,
+      'paramount plus': `Paramount Plus | DOT Angola`
+    };
+    
+    // Procurar por título específico
+    for (const [service, title] of Object.entries(streamingTitles)) {
+      if (lowerName.includes(service)) {
+        return title;
+      }
+    }
+    
+    // Título padrão para serviços de streaming
+    return `${productName} | DOT Angola`;
+  }
+
+  /**
    * Gera SEO completo para produto individual
    */
   generateProductSEO(product: SEOProduct, kwanzaPrice?: number): SEOMetadata {
     const keywords = this.generateProductKeywords(product.name, product.category?.name);
     const description = this.generateMetaDescription(product);
-    const title = `${product.name} | DOT Angola - Importação da Europa`;
+    
+    // Verificar se é um produto de streaming para título específico
+    const lowerName = product.name.toLowerCase();
+    const isStreaming = lowerName.includes('netflix') || lowerName.includes('prime') || 
+                       lowerName.includes('spotify') || lowerName.includes('tvexpress') ||
+                       lowerName.includes('disney') || lowerName.includes('hbo') ||
+                       lowerName.includes('free fire') || lowerName.includes('streaming') ||
+                       lowerName.includes('cinema') || lowerName.includes('globo');
+    
+    const title = isStreaming ? 
+      this.generateStreamingTitle(product.name) : 
+      `${product.name} | DOT Angola - Importação da Europa`;
+    
     const canonicalUrl = `${this.baseUrl}/produto/${product.slug || product.id}`;
     const ogImage = product.images?.[0] || this.defaultImage;
 

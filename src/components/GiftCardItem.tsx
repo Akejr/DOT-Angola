@@ -170,7 +170,7 @@ const GiftCardItem = ({ giftCard, bgColor, viewMode = 'grid' }: GiftCardItemProp
           {!imageError ? (
             <img 
               src={giftCard.image_url || '/images/placeholder.png'} 
-              alt={giftCard.name}
+              alt={`${giftCard.name} Angola - Como pagar ${giftCard.name} em Angola - Gift card original DOT Angola`}
               className="absolute inset-0 w-full h-full object-cover"
               onLoad={handleImageLoad}
               onError={handleImageError}
@@ -281,7 +281,7 @@ const GiftCardItem = ({ giftCard, bgColor, viewMode = 'grid' }: GiftCardItemProp
             {!imageError ? (
               <img 
                 src={giftCard.image_url || '/images/placeholder.png'} 
-                alt={giftCard.name}
+                alt={`${giftCard.name} Angola - Como pagar ${giftCard.name} em Angola - Gift card original DOT Angola`}
                 className="w-full h-full object-cover"
                 onLoad={handleImageLoad}
                 onError={handleImageError}

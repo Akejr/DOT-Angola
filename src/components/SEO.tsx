@@ -11,7 +11,7 @@ interface SEOProps {
   type?: string;
 }
 
-const BASE_URL = 'https://dot-angola.vercel.app';
+const BASE_URL = 'https://dotangola.com';
 const DEFAULT_IMAGE = `${BASE_URL}/images/DOTLOGO PRINCIPAL.jpg`;
 const DEFAULT_DESCRIPTION = 'O melhor da tecnologia em Angola. Gift cards internacionais e cartões Visa Virtual com os melhores preços.';
 

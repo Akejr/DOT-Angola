@@ -1,13 +1,13 @@
 {
-  "name": "Gift Card Haven Admin",
-  "short_name": "GCH Admin",
-  "description": "Painel administrativo da Gift Card Haven",
-  "start_url": "/admin",
+  "name": "DOT Angola - Gift Cards e Streaming",
+  "short_name": "DOT Angola",
+  "description": "Plataforma de entretenimento digital para Angola - Netflix, Prime Video, TVExpress, Spotify",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#01042D",
   "orientation": "portrait-primary",
-  "scope": "/admin",
+  "scope": "/",
   "icons": [
     {
       "src": "/pwa-icons/icon-72x72.png",
@@ -58,14 +58,14 @@
       "purpose": "maskable any"
     }
   ],
-  "categories": ["business", "finance", "productivity"],
-  "lang": "pt-BR",
+  "categories": ["entertainment", "streaming", "shopping"],
+  "lang": "pt-AO",
   "shortcuts": [
     {
-      "name": "Dashboard",
-      "short_name": "Dashboard",
-      "description": "Ver métricas e estatísticas",
-      "url": "/admin",
+      "name": "Netflix",
+      "short_name": "Netflix",
+      "description": "Pagar Netflix em Angola",
+      "url": "/gift-card/netflix",
       "icons": [
         {
           "src": "/pwa-icons/icon-96x96.png",
@@ -74,10 +74,10 @@
       ]
     },
     {
-      "name": "Vendas",
-      "short_name": "Vendas",
-      "description": "Gerenciar vendas",
-      "url": "/admin/vendas",
+      "name": "Prime Video",
+      "short_name": "Prime Video",
+      "description": "Pagar Prime Video em Angola",
+      "url": "/gift-card/prime-video",
       "icons": [
         {
           "src": "/pwa-icons/icon-96x96.png",
@@ -86,10 +86,10 @@
       ]
     },
     {
-      "name": "Notificações",
-      "short_name": "Notificações",
-      "description": "Ver notificações",
-      "url": "/admin/notificacoes",
+      "name": "TVExpress",
+      "short_name": "TVExpress",
+      "description": "Pagar TVExpress em Angola",
+      "url": "/gift-card/tvexpress",
       "icons": [
         {
           "src": "/pwa-icons/icon-96x96.png",

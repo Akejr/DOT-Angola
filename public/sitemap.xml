@@ -1,116 +1,236 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://dot-angola.vercel.app/</loc>
+    <loc>https://dotangola.com/</loc>
+    <lastmod>2025-01-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  
+  <!-- Serviços de Streaming - Alta Prioridade -->
+  <url>
+    <loc>https://dotangola.com/gift-card/netflix</loc>
     <lastmod>2025-01-26</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://dot-angola.vercel.app/visa-virtual</loc>
+    <loc>https://dotangola.com/gift-card/prime-video</loc>
     <lastmod>2025-01-26</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://dot-angola.vercel.app/importacao</loc>
+    <loc>https://dotangola.com/gift-card/tvexpress</loc>
+    <lastmod>2025-01-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://dotangola.com/gift-card/my-family-cinema</loc>
+    <lastmod>2025-01-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://dotangola.com/gift-card/spotify</loc>
+    <lastmod>2025-01-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://dotangola.com/gift-card/diamantes-free-fire</loc>
+    <lastmod>2025-01-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://dotangola.com/gift-card/hbo-max</loc>
+    <lastmod>2025-01-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://dotangola.com/gift-card/globo-play</loc>
+    <lastmod>2025-01-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://dotangola.com/gift-card/disney-plus</loc>
+    <lastmod>2025-01-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://dotangola.com/gift-card/youtube-premium</loc>
+    <lastmod>2025-01-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://dotangola.com/gift-card/paramount-plus</loc>
+    <lastmod>2025-01-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+  
+  <!-- Páginas de Categorias de Streaming -->
+  <url>
+    <loc>https://dotangola.com/categoria/streaming</loc>
     <lastmod>2025-01-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://dot-angola.vercel.app/importacao/categoria/eletronicos</loc>
+    <loc>https://dotangola.com/categoria/entretenimento</loc>
+    <lastmod>2025-01-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://dotangola.com/categoria/musica</loc>
+    <lastmod>2025-01-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://dotangola.com/categoria/gaming</loc>
+    <lastmod>2025-01-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <!-- Páginas de Produtos Físicos -->
+  <url>
+    <loc>https://dotangola.com/importacao</loc>
+    <lastmod>2025-01-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://dotangola.com/importacao/categoria/eletronicos</loc>
     <lastmod>2025-01-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://dot-angola.vercel.app/importacao/categoria/smartphones</loc>
+    <loc>https://dotangola.com/importacao/categoria/smartphones</loc>
     <lastmod>2025-01-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://dot-angola.vercel.app/importacao/categoria/laptops</loc>
+    <loc>https://dotangola.com/importacao/categoria/laptops</loc>
     <lastmod>2025-01-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://dot-angola.vercel.app/importacao/categoria/acessorios</loc>
+    <loc>https://dotangola.com/importacao/categoria/acessorios</loc>
     <lastmod>2025-01-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://dot-angola.vercel.app/importacao/categoria/gadgets</loc>
+    <loc>https://dotangola.com/importacao/categoria/gadgets</loc>
+    <lastmod>2025-01-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Serviços Principais -->
+  <url>
+    <loc>https://dotangola.com/visa-virtual</loc>
     <lastmod>2025-01-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://dot-angola.vercel.app/transferencias</loc>
+    <loc>https://dotangola.com/transferencias</loc>
     <lastmod>2025-01-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://dot-angola.vercel.app/mais-vendidos</loc>
+    <loc>https://dotangola.com/mais-vendidos</loc>
     <lastmod>2025-01-26</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
+  
+  <!-- Páginas Institucionais -->
   <url>
-    <loc>https://dot-angola.vercel.app/sobre-nos</loc>
+    <loc>https://dotangola.com/sobre-nos</loc>
     <lastmod>2025-01-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://dot-angola.vercel.app/contato</loc>
+    <loc>https://dotangola.com/contato</loc>
     <lastmod>2025-01-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://dot-angola.vercel.app/termos</loc>
+    <loc>https://dotangola.com/termos</loc>
     <lastmod>2025-01-26</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://dot-angola.vercel.app/privacidade</loc>
+    <loc>https://dotangola.com/privacidade</loc>
     <lastmod>2025-01-26</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
+  
+  <!-- Páginas de Busca e Filtros -->
   <url>
-    <loc>https://dot-angola.vercel.app/gift-card/netflix</loc>
-    <lastmod>2024-03-21</lastmod>
+    <loc>https://dotangola.com/netflix-angola</loc>
+    <lastmod>2025-01-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://dotangola.com/prime-video-angola</loc>
+    <lastmod>2025-01-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://dotangola.com/tvexpress-angola</loc>
+    <lastmod>2025-01-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://dotangola.com/spotify-angola</loc>
+    <lastmod>2025-01-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://dotangola.com/como-pagar-netflix-angola</loc>
+    <lastmod>2025-01-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://dot-angola.vercel.app/gift-card/prime-video</loc>
-    <lastmod>2024-03-21</lastmod>
+    <loc>https://dotangola.com/como-pagar-prime-video-angola</loc>
+    <lastmod>2025-01-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://dot-angola.vercel.app/gift-card/tvexpress</loc>
-    <lastmod>2024-03-21</lastmod>
+    <loc>https://dotangola.com/como-pagar-tvexpress-angola</loc>
+    <lastmod>2025-01-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://dot-angola.vercel.app/gift-card/my-family-cinema</loc>
-    <lastmod>2024-03-21</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://dot-angola.vercel.app/gift-card/diamantes-free-fire</loc>
-    <lastmod>2024-03-21</lastmod>
+    <loc>https://dotangola.com/como-pagar-spotify-angola</loc>
+    <lastmod>2025-01-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>

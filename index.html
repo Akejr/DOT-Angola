@@ -1,56 +1,175 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-AO">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/jpeg" href="/images/DOTLOGO PRINCIPAL.jpg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DOT ANGOLA - O melhor da tecnologia em Angola</title>
-    <meta name="description" content="DOT ANGOLA - O melhor da tecnologia em Angola. Gift cards internacionais, cartões presente e cartões virtuais com os melhores preços." />
+    <title>DOT Angola - Netflix, Prime Video, TVExpress, Spotify</title>
+    <meta name="description" content="Como pagar Netflix, Prime Video, TVExpress, Spotify em Angola. Gift cards originais com melhor preço em Kwanzas. Ativação imediata para toda Angola: Luanda, Benguela, Huambo." />
     <meta name="author" content="DOT Angola" />
-    <meta name="keywords" content="gift cards Angola, comprar gift cards Angola, gift card Steam Angola, gift card Spotify Angola, gift card Netflix Angola, cartão presente Angola, tecnologia Angola, DOT Angola, cartão VISA virtual Angola" />
+    <meta name="keywords" content="Netflix Angola, Prime Video Angola, TVExpress Angola, Spotify Angola, como pagar Netflix Angola, como pagar Prime Video Angola, como pagar TVExpress Angola, como pagar Spotify Angola, streaming Angola, entretenimento digital Angola, gift cards Angola, Kwanzas, Luanda, Benguela, Huambo, My Family Cinema Angola, Free Fire diamantes Angola, HBO Max Angola, Disney Plus Angola, YouTube Premium Angola" />
 
-    <meta property="og:title" content="DOT ANGOLA - O melhor da tecnologia em Angola" />
-    <meta property="og:description" content="DOT ANGOLA - O melhor da tecnologia em Angola. Gift cards internacionais, cartões presente e cartões virtuais com os melhores preços." />
+    <!-- Meta tags específicas para Angola -->
+    <meta name="geo.region" content="AO" />
+    <meta name="geo.country" content="Angola" />
+    <meta name="geo.placename" content="Luanda" />
+    <meta name="language" content="pt-AO" />
+    <meta name="target-country" content="Angola" />
+    <meta name="target-audience" content="Angola" />
+    <meta name="distribution" content="local" />
+    <meta name="coverage" content="Angola" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="bingbot" content="index, follow" />
+    <meta name="rating" content="general" />
+    <meta name="revisit-after" content="1 day" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="DOT Angola - Netflix, Prime Video, TVExpress, Spotify" />
+    <meta property="og:description" content="Como pagar Netflix, Prime Video, TVExpress, Spotify em Angola. Gift cards originais com melhor preço em Kwanzas. Ativação imediata para toda Angola: Luanda, Benguela, Huambo." />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://dot-angola.vercel.app/images/DOTLOGO PRINCIPAL.jpg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="DOT Angola - Streaming e Entretenimento Digital" />
     <meta property="og:site_name" content="DOT ANGOLA" />
     <meta property="og:url" content="https://dot-angola.vercel.app" />
+    <meta property="og:locale" content="pt_AO" />
 
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@dotangola" />
-    <meta name="twitter:title" content="DOT ANGOLA - O melhor da tecnologia em Angola" />
-    <meta name="twitter:description" content="DOT ANGOLA - O melhor da tecnologia em Angola. Gift cards internacionais, cartões presente e cartões virtuais com os melhores preços." />
+    <meta name="twitter:creator" content="@dotangola" />
+    <meta name="twitter:title" content="DOT Angola - Netflix, Prime Video, TVExpress, Spotify" />
+    <meta name="twitter:description" content="Como pagar Netflix, Prime Video, TVExpress, Spotify em Angola. Gift cards originais com melhor preço em Kwanzas. Ativação imediata para toda Angola: Luanda, Benguela, Huambo." />
     <meta name="twitter:image" content="https://dot-angola.vercel.app/images/DOTLOGO PRINCIPAL.jpg" />
+    <meta name="twitter:image:alt" content="DOT Angola - Streaming e Entretenimento Digital" />
     
-    <meta name="robots" content="index, follow" />
+    <!-- Canonical e hreflang -->
+    <link rel="canonical" href="https://dot-angola.vercel.app/" />
+    <link rel="alternate" hreflang="pt-ao" href="https://dot-angola.vercel.app/" />
+    <link rel="alternate" hreflang="pt" href="https://dot-angola.vercel.app/" />
+    <link rel="alternate" hreflang="x-default" href="https://dot-angola.vercel.app/" />
+    
+    <!-- Preconnect para performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://dot-angola.vercel.app" />
+    
+    <!-- PWA -->
     <meta name="theme-color" content="#01042D" />
-    <link rel="canonical" href="https://dot-angola.vercel.app" />
-
-    <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
-    
-    <!-- PWA Icons -->
-    <link rel="apple-touch-icon" sizes="72x72" href="/pwa-icons/icon-72x72.png" />
-    <link rel="apple-touch-icon" sizes="96x96" href="/pwa-icons/icon-96x96.png" />
-    <link rel="apple-touch-icon" sizes="128x128" href="/pwa-icons/icon-128x128.png" />
-    <link rel="apple-touch-icon" sizes="144x144" href="/pwa-icons/icon-144x144.png" />
-    <link rel="apple-touch-icon" sizes="152x152" href="/pwa-icons/icon-152x152.png" />
-    <link rel="apple-touch-icon" sizes="192x192" href="/pwa-icons/icon-192x192.png" />
-    <link rel="apple-touch-icon" sizes="384x384" href="/pwa-icons/icon-384x384.png" />
-    <link rel="apple-touch-icon" sizes="512x512" href="/pwa-icons/icon-512x512.png" />
-    
-    <!-- iOS PWA Meta Tags -->
+    <link rel="apple-touch-icon" href="/images/DOTLOGO PRINCIPAL.jpg" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="GCH Admin" />
+    <meta name="apple-mobile-web-app-title" content="DOT Angola" />
     
-    <!-- Android PWA Meta Tags -->
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="application-name" content="Gift Card Haven Admin" />
+    <!-- Otimizações técnicas -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="format-detection" content="telephone=yes" />
+    <meta name="format-detection" content="address=yes" />
+    <meta name="format-detection" content="email=yes" />
+    <meta http-equiv="content-language" content="pt-AO" />
+    
+    <!-- JSON-LD Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "DOT Angola",
+      "url": "https://dot-angola.vercel.app",
+      "logo": "https://dot-angola.vercel.app/images/DOTLOGO PRINCIPAL.jpg",
+      "description": "Especialistas em entretenimento digital e streaming para Angola. Netflix, Prime Video, TVExpress, Spotify e mais com os melhores preços em Kwanzas.",
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "AO",
+        "addressRegion": "Luanda",
+        "addressLocality": "Luanda"
+      },
+      "areaServed": {
+        "@type": "Country",
+        "name": "Angola"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer service",
+        "areaServed": "AO",
+        "availableLanguage": "Portuguese"
+      },
+      "sameAs": [
+        "https://www.facebook.com/dotangola",
+        "https://www.instagram.com/dotangola"
+      ],
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://dot-angola.vercel.app/search?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+    
+    <!-- FAQ Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Como pagar Netflix em Angola?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Para pagar Netflix em Angola, use a DOT Angola. Oferecemos gift cards Netflix originais com preços em Kwanzas e ativação imediata. Funciona em toda Angola: Luanda, Benguela, Huambo e outras cidades."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Como pagar Prime Video em Angola?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Para pagar Amazon Prime Video em Angola, use a DOT Angola. Oferecemos gift cards Prime Video originais com preços em Kwanzas e ativação imediata. Disponível para toda Angola."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "TVExpress funciona em Angola?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Sim, TVExpress funciona perfeitamente em Angola. Na DOT Angola oferecemos assinaturas TVExpress com preços em Kwanzas e ativação imediata. Assista futebol ao vivo em toda Angola."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Como pagar Spotify em Angola?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Para pagar Spotify Premium em Angola, use a DOT Angola. Oferecemos gift cards Spotify originais com preços em Kwanzas e ativação imediata. Música sem limite em toda Angola."
+          }
+        }
+      ]
+    }
+    </script>
+    
+    <!-- WebSite Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "DOT Angola",
+      "url": "https://dot-angola.vercel.app",
+      "description": "Plataforma líder em entretenimento digital para Angola. Netflix, Prime Video, TVExpress, Spotify e mais com os melhores preços em Kwanzas.",
+      "inLanguage": "pt-AO",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://dot-angola.vercel.app/search?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
   </head>
-
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>

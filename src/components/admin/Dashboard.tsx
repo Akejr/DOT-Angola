@@ -2,7 +2,7 @@ import { Users, Activity, MousePointerClick, Calendar, RefreshCw, Bell } from 'l
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { formatDistanceToNow } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { pt } from 'date-fns/locale';
 
 interface PageView {
   path: string;
@@ -255,7 +255,7 @@ export default function Dashboard() {
           <div className="min-w-0 flex-1">
             <h1 className="text-base sm:text-2xl font-semibold text-[#01042D] truncate">Dashboard</h1>
             <p className="text-xs sm:text-sm text-gray-500 truncate">
-              Atualizado {formatDistanceToNow(lastUpdated, { locale: ptBR, addSuffix: true })}
+              Atualizado {formatDistanceToNow(lastUpdated, { locale: pt, addSuffix: true })}
             </p>
           </div>
           <div className="flex items-center gap-2">

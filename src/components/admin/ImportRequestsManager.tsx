@@ -1,16 +1,14 @@
 import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Eye, Package, User, Clock, MapPin, FileText, Image, CheckCircle, XCircle, AlertCircle, Calendar } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { 
-  Calendar, 
-  Package, 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
-  AlertCircle,
-  Eye
-} from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { pt } from 'date-fns/locale';
 
 // Interface para pedidos de importação
 interface ImportRequest {
@@ -136,7 +134,7 @@ export default function ImportRequestsManager() {
     try {
       return formatDistanceToNow(new Date(dateString), { 
         addSuffix: true,
-        locale: ptBR
+        locale: pt
       });
     } catch (err) {
       return 'Data inválida';

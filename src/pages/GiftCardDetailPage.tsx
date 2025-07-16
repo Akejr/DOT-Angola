@@ -9,6 +9,7 @@ import MainLayout from '@/components/MainLayout';
 import RelatedProducts from '@/components/RelatedProducts';
 import { supabase } from '@/lib/supabase';
 import { SEO } from '@/components/SEO';
+import { StreamingSEO } from '@/components/StreamingSEO';
 
 export default function GiftCardDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -379,9 +380,40 @@ export default function GiftCardDetailPage() {
 
   const seoProps = getSeoProps();
 
+  // Verificar se é um produto de streaming
+  const isStreamingProduct = giftCard && (
+    giftCard.name.toLowerCase().includes('netflix') ||
+    giftCard.name.toLowerCase().includes('prime') ||
+    giftCard.name.toLowerCase().includes('spotify') ||
+    giftCard.name.toLowerCase().includes('tvexpress') ||
+    giftCard.name.toLowerCase().includes('tv express') ||
+    giftCard.name.toLowerCase().includes('disney') ||
+    giftCard.name.toLowerCase().includes('hbo') ||
+    giftCard.name.toLowerCase().includes('free fire') ||
+    giftCard.name.toLowerCase().includes('streaming') ||
+    giftCard.name.toLowerCase().includes('cinema') ||
+    giftCard.name.toLowerCase().includes('globo') ||
+    giftCard.name.toLowerCase().includes('youtube') ||
+    giftCard.name.toLowerCase().includes('paramount')
+  );
+
   return (
     <>
-      <SEO />
+      {isStreamingProduct && giftCard ? (
+        <StreamingSEO
+          productName={giftCard.name}
+          price={kwanzaPrice || (selectedPlan ? selectedPlan.price : giftCard.original_price)}
+          currency={kwanzaPrice ? 'AOA' : (selectedPlan ? selectedPlan.currency : giftCard.currency)}
+          image={giftCard.image_url}
+        />
+      ) : (
+        <SEO 
+          title={seoProps.title}
+          description={seoProps.description}
+          image={seoProps.image}
+          type={seoProps.type}
+        />
+      )}
       <MainLayout onPageChange={handlePageChange}>
         <div className="container p-6">
           <Link to="/" className="inline-flex items-center text-gray-600 hover:text-blue-600 mb-6 transition">

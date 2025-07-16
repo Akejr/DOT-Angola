@@ -234,7 +234,7 @@ export default function PromotionsPage() {
                         <Clock className="w-4 h-4 mr-1 text-gray-400" />
                         <span>Última atualização: </span>
                         <span className="font-medium ml-1">
-                          {new Date(globalPromotion.updated_at).toLocaleString('pt-BR')}
+                          {new Date(globalPromotion.updated_at).toLocaleDateString('pt-AO')}
                         </span>
                       </>
                     ) : (

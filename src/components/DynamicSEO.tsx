@@ -21,7 +21,7 @@ interface DynamicSEOProps {
   customKeywords?: string[];
 }
 
-const BASE_URL = 'https://dot-angola.vercel.app';
+const BASE_URL = 'https://dotangola.com';
 const DEFAULT_IMAGE = `${BASE_URL}/images/import.png`;
 
 export function DynamicSEO({ 

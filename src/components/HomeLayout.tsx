@@ -189,8 +189,8 @@ const HomeLayout = () => {
   return (
     <>
       <SEO 
-        title="DOT Angola | O melhor da tecnologia em angola"
-        description="Plataforma líder em gift cards internacionais e cartões Visa Virtual em Angola. Compre com segurança, receba em casa e pague em Kwanzas com os melhores preços do mercado angolano."
+        title="DOT Angola - Netflix, Prime Video, TVExpress, Spotify"
+        description="Como pagar Netflix, Prime Video, TVExpress, Spotify em Angola. Gift cards originais com melhor preço em Kwanzas. Ativação imediata. Disponível para toda Angola: Luanda, Benguela, Huambo, Lubango, Cabinda. Entretenimento digital com garantia e suporte."
       />
       
       <div className="min-h-screen bg-gray-100 flex items-center justify-center p-0 sm:p-4">
@@ -443,7 +443,7 @@ const HomeLayout = () => {
               <div className="flex items-center gap-2 mb-4 md:mb-0">
                 <img 
                   src="/images/sczs.png" 
-                  alt="Logo" 
+                  alt="DOT Angola - Streaming e Entretenimento Digital Angola - Netflix, Prime Video, TVExpress, Spotify" 
                   width={32} 
                   height={32}
                   className="h-8 w-auto"

@@ -78,30 +78,29 @@ export default function NotificationDropdown({ onClose }: { onClose: () => void 
     }
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+  const formatTimeAgo = (timestamp: string) => {
+    const date = new Date(timestamp);
     const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
     
-    if (diffDays === 0) {
-      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-      if (diffHours === 0) {
-        const diffMinutes = Math.floor(diffMs / (1000 * 60));
-        return diffMinutes <= 1 ? 'agora mesmo' : `há ${diffMinutes} minutos`;
-      }
-      return diffHours === 1 ? 'há 1 hora' : `há ${diffHours} horas`;
+    if (diffInSeconds < 60) {
+      return 'Agora mesmo';
+    } else if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60);
+      return `${minutes} min atrás`;
+    } else if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600);
+      return `${hours}h atrás`;
+    } else if (diffInSeconds < 604800) {
+      const days = Math.floor(diffInSeconds / 86400);
+      return `${days}d atrás`;
+    } else {
+      return date.toLocaleDateString('pt-AO', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
     }
-    
-    if (diffDays === 1) return 'ontem';
-    if (diffDays < 7) return `há ${diffDays} dias`;
-    
-    // Para datas mais antigas, mostrar a data formatada
-    return date.toLocaleDateString('pt-BR', { 
-      day: '2-digit', 
-      month: '2-digit', 
-      year: 'numeric' 
-    });
   };
 
   return (
@@ -148,7 +147,7 @@ export default function NotificationDropdown({ onClose }: { onClose: () => void 
                     <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
                     <div className="mt-2 flex items-center text-xs text-gray-500">
                       <Clock className="w-3 h-3 mr-1" />
-                      <span>{formatDate(notification.created_at)}</span>
+                      <span>{formatTimeAgo(notification.created_at)}</span>
                     </div>
                   </div>
                 </div>

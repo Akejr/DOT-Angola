@@ -409,7 +409,7 @@ const Header = () => {
         <Link to="/">
           <img 
             src="/images/sczs.png" 
-            alt="Logo" 
+            alt="DOT Angola - Netflix, Prime Video, TVExpress, Spotify Angola - Como pagar streaming em Angola"
             width={100} 
             height={35}
             className="h-8 w-auto"
@@ -476,7 +476,7 @@ const Header = () => {
                         <div className="w-12 h-12 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
                           <img 
                             src={getResultImage(result)} 
-                            alt={result.data.name}
+                            alt={`${result.data.name} Angola - Como pagar ${result.data.name} em Angola - DOT Angola`}
                             className="w-full h-full object-cover"
                           />
                         </div>
@@ -654,7 +654,7 @@ const Header = () => {
                         <div className="w-12 h-12 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
                           <img 
                             src={getResultImage(result)} 
-                            alt={result.data.name}
+                            alt={`${result.data.name} Angola - Como pagar ${result.data.name} em Angola - DOT Angola`}
                             className="w-full h-full object-cover"
                           />
                         </div>

@@ -2,18 +2,32 @@
 User-agent: *
 Allow: /
 
+# Otimizações específicas para Angola
+# Priorizar páginas de streaming
+Allow: /gift-card/
+Allow: /categoria/
+Allow: /netflix-angola
+Allow: /prime-video-angola
+Allow: /tvexpress-angola
+Allow: /spotify-angola
+Allow: /como-pagar-*-angola
+
 # Bots específicos dos principais mecanismos de busca
 User-agent: Googlebot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Bingbot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Yandex
 Allow: /
+Crawl-delay: 2
 
 User-agent: Baiduspider
 Allow: /
+Crawl-delay: 2
 
 # Bots de redes sociais
 User-agent: Twitterbot
@@ -25,8 +39,65 @@ Allow: /
 User-agent: LinkedInBot
 Allow: /
 
+User-agent: WhatsApp
+Allow: /
+
+User-agent: TelegramBot
+Allow: /
+
+# Bots de e-commerce e preços
+User-agent: PriceGrabber
+Allow: /
+
+User-agent: SemrushBot
+Allow: /
+
+User-agent: AhrefsBot
+Allow: /
+
+# Bloquear bots maliciosos comuns
+User-agent: SemrushBot
+Disallow: /admin/
+
+User-agent: AhrefsBot
+Disallow: /admin/
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+# Diretórios administrativos
+User-agent: *
+Disallow: /admin/
+Disallow: /api/
+Disallow: /private/
+Disallow: /_next/
+Disallow: /node_modules/
+
+# Arquivos temporários
+User-agent: *
+Disallow: /*.tmp$
+Disallow: /*.temp$
+Disallow: /*.log$
+
 # Caminho para o sitemap
 Sitemap: https://dot-angola.vercel.app/sitemap.xml
 
 # Host definido para evitar conteúdo duplicado
 Host: https://dot-angola.vercel.app
+
+# Configurações de crawl para otimizar performance
+# Crawl-delay for general bots
+User-agent: *
+Crawl-delay: 1
+
+# Request rate (páginas por segundo)
+Request-rate: 1/1
+
+# Sitemap
+Sitemap: https://dotangola.com/sitemap.xml
+
+# Host principal
+Host: https://dotangola.com
