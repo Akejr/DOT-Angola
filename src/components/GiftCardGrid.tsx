@@ -223,10 +223,15 @@ const GiftCardGrid = ({ selectedCategory: externalSelectedCategory }: GiftCardGr
       } else if (sortBy === 'price-desc') {
         return sortedCards.sort((a, b) => (b.original_price || 0) - (a.original_price || 0));
       } else {
-        // 'newest' é o padrão
-        return sortedCards.sort((a, b) => 
-          new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime()
-        );
+        // 'newest' é o padrão, mas primeiro mostramos os mais vendidos
+        return sortedCards.sort((a, b) => {
+          // Primeiro critério: is_featured (mais vendidos)
+          if (a.is_featured && !b.is_featured) return -1;
+          if (!a.is_featured && b.is_featured) return 1;
+          
+          // Segundo critério: data de criação (mais recentes)
+          return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
+        });
       }
     };
     

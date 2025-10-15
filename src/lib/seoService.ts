@@ -311,9 +311,11 @@ class SEOService {
         "name": this.siteName
       },
       "offers": {
-        "@type": "Offer",
-        "price": price,
+        "@type": "AggregateOffer",
+        "lowPrice": price,
+        "highPrice": price * 1.5,
         "priceCurrency": currency,
+        "offerCount": "3",
         "availability": "https://schema.org/InStock",
         "validFrom": new Date().toISOString(),
         "priceValidUntil": new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -436,23 +438,26 @@ class SEOService {
       "name": product.name,
       "description": product.description || this.generateMetaDescription(product),
       "image": product.images || [this.defaultImage],
+      "sku": product.id,
+      "mpn": product.id,
       "category": product.category?.name || "Eletrônicos",
       "brand": {
-        "@type": "Organization",
-        "name": this.siteName
+        "@type": "Brand",
+        "name": product.category?.name || this.siteName
       },
       "offers": {
-        "@type": "Offer",
-        "price": kwanzaPrice || product.price,
+        "@type": "AggregateOffer",
+        "url": `${this.baseUrl}/produto/${product.slug || product.id}`,
         "priceCurrency": kwanzaPrice ? "AOA" : product.currency,
+        "lowPrice": kwanzaPrice || product.price,
+        "highPrice": (kwanzaPrice || product.price) * 1.3,
+        "offerCount": "3",
+        "priceValidUntil": new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
         "availability": "https://schema.org/InStock",
         "seller": {
           "@type": "Organization",
-          "name": this.siteName,
-          "url": this.baseUrl
-        },
-        "priceValidUntil": new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 dias
-        "itemCondition": "https://schema.org/NewCondition"
+          "name": "DOT Angola"
+        }
       },
       "aggregateRating": {
         "@type": "AggregateRating",
@@ -542,28 +547,28 @@ class SEOService {
     
     // Títulos específicos para cada serviço de streaming
     const streamingTitles = {
-      'netflix': `Netflix | DOT Angola`,
-      'prime-video': `Prime Video | DOT Angola`,
-      'tvexpress': `TVExpress | DOT Angola`,
-      'tv express': `TVExpress | DOT Angola`,
-      'my-family-cinema': `My Family Cinema | DOT Angola`,
-      'my family cinema': `My Family Cinema | DOT Angola`,
-      'spotify': `Spotify Premium | DOT Angola`,
-      'free-fire': `Free Fire Diamantes | DOT Angola`,
-      'free fire': `Free Fire Diamantes | DOT Angola`,
-      'diamantes': `Free Fire Diamantes | DOT Angola`,
-      'hbo-max': `HBO Max | DOT Angola`,
-      'hbo max': `HBO Max | DOT Angola`,
-      'globo-play': `Globo Play | DOT Angola`,
-      'globo play': `Globo Play | DOT Angola`,
-      'disney': `Disney Plus | DOT Angola`,
-      'disney+': `Disney Plus | DOT Angola`,
-      'disney plus': `Disney Plus | DOT Angola`,
-      'youtube': `YouTube Premium | DOT Angola`,
-      'youtube premium': `YouTube Premium | DOT Angola`,
-      'paramount': `Paramount Plus | DOT Angola`,
-      'paramount+': `Paramount Plus | DOT Angola`,
-      'paramount plus': `Paramount Plus | DOT Angola`
+      'netflix': `Netflix | DOT ANGOLA`,
+      'prime-video': `Amazon Prime Video | DOT Angola - Cartão Presente Digital`,
+      'prime video': `Amazon Prime Video | DOT Angola - Cartão Presente Digital`,
+      'tvexpress': `TVExpress | DOT Angola - Cartão Presente Digital`,
+      'my-family-cinema': `My Family Cinema | DOT Angola - Cartão Presente Digital`,
+      'my family cinema': `My Family Cinema | DOT Angola - Cartão Presente Digital`,
+      'spotify': `Spotify Premium | DOT Angola - Cartão Presente Digital`,
+      'free-fire': `Free Fire Diamantes | DOT Angola - Cartão Presente Digital`,
+      'free fire': `Free Fire Diamantes | DOT Angola - Cartão Presente Digital`,
+      'diamantes': `Free Fire Diamantes | DOT Angola - Cartão Presente Digital`,
+      'hbo-max': `HBO Max | DOT Angola - Cartão Presente Digital`,
+      'hbo max': `HBO Max | DOT Angola - Cartão Presente Digital`,
+      'globo-play': `Globo Play | DOT Angola - Cartão Presente Digital`,
+      'globo play': `Globo Play | DOT Angola - Cartão Presente Digital`,
+      'disney': `Disney Plus | DOT Angola - Cartão Presente Digital`,
+      'disney+': `Disney Plus | DOT Angola - Cartão Presente Digital`,
+      'disney plus': `Disney Plus | DOT Angola - Cartão Presente Digital`,
+      'youtube': `YouTube Premium | DOT Angola - Cartão Presente Digital`,
+      'youtube premium': `YouTube Premium | DOT Angola - Cartão Presente Digital`,
+      'paramount': `Paramount Plus | DOT Angola - Cartão Presente Digital`,
+      'paramount+': `Paramount Plus | DOT Angola - Cartão Presente Digital`,
+      'paramount plus': `Paramount Plus | DOT Angola - Cartão Presente Digital`
     };
     
     // Procurar por título específico
@@ -574,7 +579,7 @@ class SEOService {
     }
     
     // Título padrão para serviços de streaming
-    return `${productName} | DOT Angola`;
+    return `${productName} | DOT Angola - Cartão Presente Digital`;
   }
 
   /**
@@ -722,4 +727,4 @@ class SEOService {
 }
 
 export const seoService = new SEOService();
-export default seoService; 
+export default seoService;

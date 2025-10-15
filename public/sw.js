@@ -52,6 +52,11 @@ self.addEventListener('activate', (event) => {
 
 // Interceptar requests e servir do cache quando offline
 self.addEventListener('fetch', (event) => {
+  // Ignorar requisições para chrome-extension
+  if (event.request.url.startsWith('chrome-extension://')) {
+    return;
+  }
+  
   // Estratégia: Network First, fallback para cache
   if (event.request.method === 'GET') {
     event.respondWith(
@@ -61,7 +66,10 @@ self.addEventListener('fetch', (event) => {
           if (response.status === 200) {
             const responseClone = response.clone();
             caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseClone);
+              // Verificar se a URL é válida para cache
+              if (!event.request.url.startsWith('chrome-extension://')) {
+                cache.put(event.request, responseClone);
+              }
             });
           }
           return response;
@@ -84,4 +92,4 @@ self.addEventListener('fetch', (event) => {
 });
 
 // Log de inicialização
-console.log('🚀 Gift Card Haven Admin Service Worker loaded successfully!'); 
+console.log('🚀 Gift Card Haven Admin Service Worker loaded successfully!');

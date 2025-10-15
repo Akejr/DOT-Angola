@@ -1,28 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Settings, Save, RefreshCw, Shield, Globe, DollarSign, Mail, Phone } from 'lucide-react';
+import { Settings, Save, RefreshCw, Shield, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 interface SystemSettings {
-  site_name: string;
-  site_description: string;
-  contact_email: string;
-  contact_phone: string;
-  whatsapp_number: string;
-  enable_notifications: boolean;
   maintenance_mode: boolean;
-  default_currency: string;
+  maintenance_message?: string;
 }
 
 export default function SettingsManager() {
   const [settings, setSettings] = useState<SystemSettings>({
-    site_name: 'DOT ANGOLA - O melhor da tecnologia em Angola',
-    site_description: 'O melhor da tecnologia em Angola. Gift cards internacionais, cartões presente e cartões virtuais com os melhores preços.',
-    contact_email: 'contato@dotangola.com',
-    contact_phone: '',
-    whatsapp_number: '+244 931343433',
-    enable_notifications: true,
     maintenance_mode: false,
-    default_currency: 'AOA'
+    maintenance_message: 'Estamos realizando manutenção no site. Por favor, volte em breve.'
   });
   
   const [loading, setLoading] = useState(true);
@@ -37,8 +25,8 @@ export default function SettingsManager() {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('settings')
-        .select('*')
+        .from('system_settings')
+        .select('maintenance_mode, maintenance_message')
         .single();
 
       if (error && error.code !== 'PGRST116') { // PGRST116 é o código para "não encontrado"
@@ -46,7 +34,10 @@ export default function SettingsManager() {
       }
 
       if (data) {
-        setSettings(data);
+        setSettings({
+          maintenance_mode: data.maintenance_mode || false,
+          maintenance_message: data.maintenance_message || 'Estamos realizando manutenção no site. Por favor, volte em breve.'
+        });
       }
     } catch (error) {
       console.error('Erro ao carregar configurações:', error);
@@ -56,34 +47,37 @@ export default function SettingsManager() {
   };
 
   const saveSettings = async () => {
+    setSaving(true);
     try {
-      setSaving(true);
+      let saveError = null;
       
-      // Verificar se já existe registro de configurações
-      const { data, error: checkError } = await supabase
-        .from('settings')
-        .select('id')
-        .single();
+      // Verificar se já existe uma configuração
+      const { data, error } = await supabase
+        .from('system_settings')
+        .select('*')
+        .limit(1);
       
-      if (checkError && checkError.code !== 'PGRST116') {
-        throw checkError;
-      }
+      if (error) throw error;
       
-      let saveError;
+      // Preparar os dados para salvar (apenas os campos necessários)
+      const settingsToSave = {
+        maintenance_mode: settings.maintenance_mode,
+        maintenance_message: settings.maintenance_message
+      };
       
-      if (data) {
+      if (data && data.length > 0) {
         // Atualizar configurações existentes
         const { error } = await supabase
-          .from('settings')
-          .update(settings)
-          .eq('id', data.id);
+          .from('system_settings')
+          .update(settingsToSave)
+          .eq('id', data[0].id);
           
         saveError = error;
       } else {
         // Inserir novas configurações
         const { error } = await supabase
-          .from('settings')
-          .insert([settings]);
+          .from('system_settings')
+          .insert([settingsToSave]);
           
         saveError = error;
       }
@@ -100,7 +94,7 @@ export default function SettingsManager() {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
     
     setSettings({
@@ -151,157 +145,31 @@ export default function SettingsManager() {
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <div className="p-6 border-b border-gray-100">
           <h2 className="text-lg font-medium text-gray-900 flex items-center">
-            <Globe className="w-5 h-5 mr-2 text-gray-500" />
-            Configurações do Site
-          </h2>
-        </div>
-        <div className="p-6 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nome do Site
-              </label>
-              <input
-                type="text"
-                name="site_name"
-                value={settings.site_name}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Descrição do Site
-              </label>
-              <textarea
-                name="site_description"
-                value={settings.site_description}
-                onChange={handleInputChange}
-                rows={2}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-gray-100">
-          <h2 className="text-lg font-medium text-gray-900 flex items-center">
-            <Mail className="w-5 h-5 mr-2 text-gray-500" />
-            Informações de Contato
-          </h2>
-        </div>
-        <div className="p-6 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email de Contato
-              </label>
-              <input
-                type="email"
-                name="contact_email"
-                value={settings.contact_email}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Telefone de Contato
-              </label>
-              <input
-                type="tel"
-                name="contact_phone"
-                value={settings.contact_phone}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Número do WhatsApp para Compras
-              </label>
-              <div className="flex items-center">
-                <Phone className="w-5 h-5 text-gray-400 mr-2" />
-                <input
-                  type="tel"
-                  name="whatsapp_number"
-                  value={settings.whatsapp_number}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="+244 000000000"
-                />
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Número utilizado para enviar mensagens de compra. Inclua o código do país.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-gray-100">
-          <h2 className="text-lg font-medium text-gray-900 flex items-center">
-            <DollarSign className="w-5 h-5 mr-2 text-gray-500" />
-            Configurações de Moeda
-          </h2>
-        </div>
-        <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Moeda Padrão
-            </label>
-            <select
-              name="default_currency"
-              value={settings.default_currency}
-              onChange={handleInputChange}
-              className="w-full md:w-1/3 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="AOA">Kwanza (AOA)</option>
-              <option value="USD">Dólar Americano (USD)</option>
-              <option value="EUR">Euro (EUR)</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-gray-100">
-          <h2 className="text-lg font-medium text-gray-900 flex items-center">
             <Shield className="w-5 h-5 mr-2 text-gray-500" />
-            Configurações do Sistema
+            Modo de Manutenção
           </h2>
         </div>
         <div className="p-6 space-y-4">
+          {settings.maintenance_mode && (
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <AlertTriangle className="h-5 w-5 text-yellow-400" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-yellow-700">
+                    <strong>Atenção:</strong> O site está atualmente em modo de manutenção. Os visitantes não conseguirão acessar o conteúdo normal do site.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <div className="flex items-center justify-between py-2 border-b border-gray-100">
             <div>
-              <h3 className="text-sm font-medium text-gray-900">Ativar Notificações</h3>
+              <h3 className="text-sm font-medium text-gray-900">Ativar Modo de Manutenção</h3>
               <p className="text-xs text-gray-500">
-                Mostrar notificações ativas na página inicial
-              </p>
-            </div>
-            <div className="relative inline-block w-10 mr-2 align-middle select-none">
-              <input
-                type="checkbox"
-                name="enable_notifications"
-                id="enable_notifications"
-                checked={settings.enable_notifications}
-                onChange={handleInputChange}
-                className="sr-only peer"
-              />
-              <label
-                htmlFor="enable_notifications"
-                className="block h-6 overflow-hidden bg-gray-200 rounded-full cursor-pointer peer-checked:bg-blue-600 after:absolute after:z-[2] after:top-0 after:left-0 after:content-[''] after:bg-white after:h-6 after:w-6 after:rounded-full after:transition-all after:duration-300 peer-checked:after:translate-x-full"
-              ></label>
-            </div>
-          </div>
-          <div className="flex items-center justify-between py-2">
-            <div>
-              <h3 className="text-sm font-medium text-gray-900">Modo Manutenção</h3>
-              <p className="text-xs text-gray-500">
-                Exibir página de manutenção para todos os visitantes
+                Quando ativado, todos os visitantes verão apenas a página de manutenção
               </p>
             </div>
             <div className="relative inline-block w-10 mr-2 align-middle select-none">
@@ -319,6 +187,23 @@ export default function SettingsManager() {
               ></label>
             </div>
           </div>
+          
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Mensagem de Manutenção
+            </label>
+            <textarea
+              name="maintenance_message"
+              value={settings.maintenance_message}
+              onChange={handleInputChange}
+              rows={3}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Mensagem que será exibida durante a manutenção"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Esta mensagem será exibida na página de manutenção para informar os visitantes.
+            </p>
+          </div>
         </div>
       </div>
 
@@ -329,9 +214,9 @@ export default function SettingsManager() {
           disabled={saving}
         >
           <Settings className="w-5 h-5 mr-2" />
-          <span>{saving ? 'Salvando Configurações...' : 'Salvar Todas as Configurações'}</span>
+          <span>{saving ? 'Salvando Configurações...' : 'Salvar Configurações'}</span>
         </button>
       </div>
     </div>
   );
-} 
+}
